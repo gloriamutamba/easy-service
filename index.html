@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Services — Trouvez un prestataire qualifié</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-hands-helping"></i>
+            <span>Easy Services</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html" class="active">Accueil</a>
+            <a href="#categories">Catégories</a>
+            <a href="#comment-ca-marche">Comment ça marche</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <button class="nav-toggle" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('nav-open')"><i
+                class="fas fa-bars"></i></button>
+        <div class="nav-auth" id="navAuth">
+            <button class="btn-login" onclick="showModal('loginModal')">Connexion</button>
+            <button class="btn-register" onclick="showModal('registerModal')">Inscription</button>
+        </div>
+        <div class="nav-user hidden" id="navUser">
+            <span id="userNameDisplay"></span>
+            <button id="navAdminBtn" class="btn-admin hidden"
+                onclick="window.location.href='admin.html'">Administration</button>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Trouvez le bon prestataire,<br><span class="highlight">au bon moment.</span></h1>
+            <p>Plombiers, électriciens, mécaniciens, informaticiens, coiffeurs, couturiers...<br>Tous les
+                métiers à portée de clic.</p>
+
+            <div class="hero-buttons">
+                <a href="client.html" class="btn-client">
+                    <i class="fas fa-search"></i>
+                    <div>
+                        <strong>Je suis Client</strong>
+                        <span>Je recherche un prestataire</span>
+                    </div>
+                </a>
+                <a href="prestataire.html" class="btn-prestataire">
+                    <i class="fas fa-tools"></i>
+                    <div>
+                        <strong>Je suis Prestataire</strong>
+                        <span>Je propose mes services</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number" id="statPrestataires">0</span>
+                    <span class="stat-label">Prestataires</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="statClients">0</span>
+                    <span class="stat-label">Clients</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="statMissions">0</span>
+                    <span class="stat-label">Missions réalisées</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="hero-card hero-card-1">
+                <i class="fas fa-star"></i>
+                <span>4.9/5</span>
+                <small>Note moyenne</small>
+            </div>
+            <div class="hero-card hero-card-2">
+                <i class="fas fa-shield-alt"></i>
+                <span>100% Sécurisé</span>
+                <small>Paiement protégé</small>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bouton Urgence -->
+    <section class="urgence-section">
+        <div class="urgence-box" onclick="window.location.href='client.html?urgence=1'">
+            <div class="urgence-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="urgence-text">
+                <h3>Besoin urgent ?</h3>
+                <p>Trouvez immédiatement un prestataire disponible près de chez vous.</p>
+            </div>
+            <button class="btn-urgence">Trouver maintenant <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </section>
+
+    <!-- Assistant Intelligent -->
+    <section class="assistant-section" id="assistant">
+        <div class="assistant-container">
+            <div class="assistant-left">
+                <h2><i class="fas fa-robot"></i> Easy Assistant</h2>
+                <p>Décrivez votre problème, notre assistant intelligent vous recommande le bon service.</p>
+                <div class="assistant-examples">
+                    <span class="example-tag" onclick="fillAssistant('Ma douche fuit depuis hier')">"Ma
+                        douche fuit"</span>
+                    <span class="example-tag" onclick="fillAssistant('Mon ordinateur ne s\'allume plus')">"Mon PC ne
+                        s'allume
+                        plus"</span>
+                    <span class="example-tag"
+                        onclick="fillAssistant('J\'ai besoin d\'une nouvelle coupe de cheveux')">"Nouvelle
+                        coupe de cheveux"</span>
+                    <span class="example-tag"
+                        onclick="fillAssistant('Ma voiture fait un bruit bizarre au démarrage')">"Bruit
+                        bizarre au démarrage"</span>
+                </div>
+            </div>
+            <div class="assistant-right">
+                <div class="assistant-input-box">
+                    <textarea id="assistantInput"
+                        placeholder="Décrivez votre problème ici... Ex: J'ai une fuite sous mon évier de cuisine"></textarea>
+                    <button class="btn-assistant" onclick="analyzeProblem()">
+                        <i class="fas fa-magic"></i> Analyser mon besoin
+                    </button>
+                </div>
+                <div class="assistant-result hidden" id="assistantResult">
+                    <div class="assistant-thinking">
+                        <i class="fas fa-spinner fa-spin"></i> Easy Assistant analyse votre problème...
+                    </div>
+                    <div class="assistant-recommendation hidden" id="assistantRecommendation"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Prestataires -->
+    <section class="top-prestataires" id="top-prestataires">
+        <h2>🏆 Top Prestataires du mois</h2>
+        <p>Les professionnels les mieux notés par nos clients.</p>
+        <div class="top-presta-grid" id="topPrestatairesGrid">
+            <!-- Généré par JS -->
+        </div>
+        <div style="text-align:center;margin-top:24px;">
+            <a href="client.html" class="btn-primary">Voir tous les prestataires</a>
+        </div>
+    </section>
+
+    <!-- Catégories -->
+    <section class="categories" id="categories">
+        <h2>Nos catégories de services</h2>
+        <p>Choisissez votre métier et trouvez le meilleur prestataire près de chez vous.</p>
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- Généré par JS -->
+        </div>
+    </section>
+
+    <!-- Comment ça marche -->
+    <section class="how-it-works" id="comment-ca-marche">
+        <h2>Comment ça marche ?</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <i class="fas fa-search"></i>
+                <h3>Recherchez</h3>
+                <p>Utilisez l'assistant intelligent ou choisissez une catégorie.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <i class="fas fa-file-invoice-dollar"></i>
+                <h3>Demandez un devis</h3>
+                <p>Décrivez votre besoin et recevez un devis personnalisé.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <i class="fas fa-check-circle"></i>
+                <h3>Confirmez</h3>
+                <p>Acceptez le devis, planifiez le rendez-vous et laissez-vous guider.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Témoignages -->
+    <section class="testimonials">
+        <h2>Ils nous font confiance</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial">
+                <div class="stars">★★★★★</div>
+                <p>"J'ai trouvé un plombier en 10 minutes grâce au mode urgence. Le travail était impeccable
+                    !"</p>
+                <div class="testimonial-author">
+                    <div class="avatar">MK</div>
+                    <div>
+                        <strong>Marie K.</strong>
+                        <span>Client — Lubumbashi</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <div class="stars">★★★★★</div>
+                <p>"Grâce à Easy Services, j'ai doublé mon nombre de clients. L'assistant intelligent est
+                    génial."</p>
+                <div class="testimonial-author">
+                    <div class="avatar">JP</div>
+                    <div>
+                        <strong>Jean P.</strong>
+                        <span>Électricien — Lushi</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <div class="stars">★★★★★</div>
+                <p>"Mon ordinateur était en panne, un informaticien est venu le jour même. Service au top !"
+                </p>
+                <div class="testimonial-author">
+                    <div class="avatar">AM</div>
+                    <div>
+                        <strong>Alice M.</strong>
+                        <span>Client — Kolwezi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-hands-helping"></i>
+                <span>Easy Services</span>
+                <p>La plateforme de mise en relation entre clients et prestataires qualifiés.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Liens rapides</h4>
+                <a href="client.html">Espace Client</a>
+                <a href="prestataire.html">Espace Prestataire</a>
+                <a href="#">Conditions d'utilisation</a>
+                <a href="#">Politique de confidentialité</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <p><i class="fas fa-envelope"></i> contact@easyservices.cd</p>
+                <p><i class="fas fa-phone"></i> +243 999 999 999</p>
+                <p><i class="fas fa-map-marker-alt"></i> Lushi, RDC</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Easy Services. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Modal Connexion -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2>Connexion</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <!-- Type sélection supprimée : le backend détermine le rôle réel -->
+                <button type="submit" class="btn-submit">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Inscription -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('registerModal')">&times;</span>
+            <h2>Inscription</h2>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nom</label>
+                        <input type="text" id="regNom" required placeholder="Dupont">
+                    </div>
+                    <div class="form-group">
+                        <label>Prénom</label>
+                        <input type="text" id="regPrenom" required placeholder="Jean">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Téléphone</label>
+                    <input type="tel" id="regPhone" required placeholder="+243...">
+                </div>
+                <div class="form-group">
+                    <label>Ville / Quartier</label>
+                    <input type="text" id="regVille" placeholder="Lushi, Q. Industriel">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="regPassword" required placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label>Confirmer le mot de passe</label>
+                    <input type="password" id="regPasswordConfirm" required placeholder="Confirmez le mot de passe">
+                </div>
+                <div class="form-group">
+                    <label>Type de compte</label>
+                    <select id="regType" required onchange="toggleRegFields()">
+                        <option value="client">Client</option>
+                        <option value="prestataire">Prestataire</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="regMetierGroup">
+                    <label>Métier / Catégorie principal</label>
+                    <select id="regMetier">
+                        <option value="">Choisir un métier...</option>
+                        <option value="Plombier">Plombier</option>
+                        <option value="Électricien">Électricien</option>
+                        <option value="Mécanicien">Mécanicien</option>
+                        <option value="Menuisier">Menuisier</option>
+                        <option value="Informaticien">Informaticien</option>
+                        <option value="Maçon">Maçon</option>
+                        <option value="Coiffeur">Coiffeur</option>
+                        <option value="Couturier">Couturier</option>
+                        <option value="Serrurier">Serrurier</option>
+                        <option value="Peintre">Peintre</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Créer mon compte</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

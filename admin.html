@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Easy Services</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dashboard-body">
+    <aside class="sidebar sidebar-admin">
+        <div class="sidebar-brand">
+            <i class="fas fa-cog"></i>
+            <span>Admin Easy Services</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="active" onclick="showAdminSection('dashboard', this)"><i
+                    class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+            <a href="#" onclick="showAdminSection('clients', this)"><i class="fas fa-users"></i> Clients</a>
+            <a href="#" onclick="showAdminSection('prestataires', this)"><i class="fas fa-hard-hat"></i>
+                Prestataires</a>
+            <a href="#" onclick="showAdminSection('demandes', this)"><i class="fas fa-clipboard-list"></i> Demandes</a>
+            <a href="#" onclick="showAdminSection('avis', this)"><i class="fas fa-star"></i> Avis & Notations</a>
+            <a href="#" onclick="showAdminSection('categories', this)"><i class="fas fa-tags"></i> Catégories</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
+            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <button class="nav-toggle" aria-label="Ouvrir le menu"
+                onclick="document.body.classList.toggle('sidebar-open')"><i class="fas fa-bars"></i></button>
+            <h1>Administration</h1>
+            <div class="header-user">
+                <span>Administrateur</span>
+                <div class="avatar" style="background:#e74c3c;">A</div>
+            </div>
+        </header>
+
+        <!-- Dashboard -->
+        <section class="admin-section active" id="admin-dashboard">
+            <div class="stats-cards">
+                <div class="stat-card blue"><i class="fas fa-users"></i>
+                    <div><span class="stat-value" id="adminTotalClients">0</span><span class="stat-label">Clients</span>
+                    </div>
+                </div>
+                <div class="stat-card green"><i class="fas fa-hard-hat"></i>
+                    <div><span class="stat-value" id="adminTotalPrestas">0</span><span
+                            class="stat-label">Prestataires</span></div>
+                </div>
+                <div class="stat-card orange"><i class="fas fa-clipboard-check"></i>
+                    <div><span class="stat-value" id="adminTotalDemandes">0</span><span
+                            class="stat-label">Demandes</span></div>
+                </div>
+                <div class="stat-card purple"><i class="fas fa-check-double"></i>
+                    <div><span class="stat-value" id="adminTotalTerminees">0</span><span
+                            class="stat-label">Terminées</span></div>
+                </div>
+            </div>
+
+            <div class="admin-charts">
+                <div class="chart-card">
+                    <h3>Demandes par statut</h3>
+                    <div class="status-bars" id="adminStatusBars"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Prestataires par catégorie</h3>
+                    <div class="category-list" id="adminCategoryList"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clients -->
+        <section class="admin-section" id="admin-clients">
+            <h2>Gestion des clients</h2>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Téléphone</th>
+                            <th>Ville</th>
+                            <th>Inscription</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminClientsTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Prestataires -->
+        <section class="admin-section" id="admin-prestataires">
+            <h2>Gestion des prestataires</h2>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Métier</th>
+                            <th>Ville</th>
+                            <th>Note</th>
+                            <th>Badge</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminPrestasTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Demandes -->
+        <section class="admin-section" id="admin-demandes">
+            <h2>Toutes les demandes</h2>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Client</th>
+                            <th>Prestataire</th>
+                            <th>Description</th>
+                            <th>Urgence</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminDemandesTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Avis -->
+        <section class="admin-section" id="admin-avis">
+            <h2>Modération des avis</h2>
+            <div class="avis-moderation" id="adminAvisList"></div>
+        </section>
+
+        <!-- Catégories -->
+        <section class="admin-section" id="admin-categories">
+            <h2>Gestion des catégories</h2>
+            <div class="category-manager">
+                <div class="add-category"><input type="text" id="newCategoryName"
+                        placeholder="Nouvelle catégorie..."><button class="btn-primary" onclick="addCategory()"><i
+                            class="fas fa-plus"></i> Ajouter</button></div>
+                <div class="categories-tags" id="adminCategoriesTags"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Prestataire — Easy Services</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dashboard-body">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-hands-helping"></i>
+            <span>Easy Services</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="active" onclick="showPrestataireSection('tableau', this)">
+                <i class="fas fa-chart-line"></i> Tableau de bord
+            </a>
+            <a href="#" onclick="showPrestataireSection('demandes', this)">
+                <i class="fas fa-inbox"></i> Demandes reçues
+                <span class="badge hidden" id="prestaBadge">0</span>
+            </a>
+            <a href="#" onclick="showPrestataireSection('devis', this)">
+                <i class="fas fa-file-invoice-dollar"></i> Mes devis
+            </a>
+            <a href="#" onclick="showPrestataireSection('messages', this)">
+                <i class="fas fa-comments"></i> Messages
+            </a>
+            <a href="#" onclick="showPrestataireSection('profil', this)">
+                <i class="fas fa-user-cog"></i> Mon profil
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
+            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <button class="nav-toggle" aria-label="Ouvrir le menu"
+                onclick="document.body.classList.toggle('sidebar-open')"><i class="fas fa-bars"></i></button>
+            <h1>Espace Prestataire</h1>
+            <div class="header-user">
+                <span id="prestaName">Prestataire</span>
+                <div class="avatar" id="prestaAvatar">P</div>
+            </div>
+        </header>
+
+        <!-- Tableau de bord -->
+        <section class="prestataire-section active" id="presta-tableau">
+            <div class="stats-cards">
+                <div class="stat-card blue">
+                    <i class="fas fa-inbox"></i>
+                    <div>
+                        <span class="stat-value" id="dashDemandes">0</span>
+                        <span class="stat-label">Demandes reçues</span>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <span class="stat-value" id="dashAcceptees">0</span>
+                        <span class="stat-label">Acceptées</span>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <i class="fas fa-star"></i>
+                    <div>
+                        <span class="stat-value" id="dashNote">0.0</span>
+                        <span class="stat-label">Note moyenne</span>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <i class="fas fa-dollar-sign"></i>
+                    <div>
+                        <span class="stat-value" id="dashRevenus">0 $</span>
+                        <span class="stat-label">Revenus estimés</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-recent">
+                <h3>Demandes récentes</h3>
+                <div class="demandes-table" id="prestaDemandesRecentes">
+                    <!-- Généré par JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Demandes reçues -->
+        <section class="prestataire-section" id="presta-demandes">
+            <h2>Toutes les demandes reçues</h2>
+            <div class="demandes-list" id="prestaAllDemandes">
+                <!-- Généré par JS -->
+            </div>
+        </section>
+
+        <!-- Mes devis -->
+        <section class="prestataire-section" id="presta-devis">
+            <h2>Mes devis envoyés</h2>
+            <div class="devis-list" id="prestaDevisList">
+                <!-- Généré par JS -->
+            </div>
+        </section>
+
+        <!-- Messages -->
+        <section class="prestataire-section" id="presta-messages">
+            <h2>Mes conversations</h2>
+            <div class="messages-container" id="prestaMessagesContainer">
+                <!-- Généré par JS -->
+            </div>
+        </section>
+
+        <!-- Profil -->
+        <section class="prestataire-section" id="presta-profil">
+            <h2>Mon profil public</h2>
+            <div class="profil-card">
+                <form id="prestaProfilForm" onsubmit="updatePrestaProfil(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom complet</label>
+                            <input type="text" id="prestaProfilNom" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="prestaProfilEmail" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" id="prestaProfilPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ville</label>
+                            <input type="text" id="prestaProfilVille" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description de vos services</label>
+                        <textarea id="prestaProfilDesc" rows="4" required
+                            placeholder="Décrivez votre expérience et vos compétences..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tarif horaire (USD)</label>
+                            <input type="number" id="prestaProfilTarif" min="0" placeholder="Ex: 25">
+                        </div>
+                        <div class="form-group">
+                            <label>Zone d'intervention</label>
+                            <input type="text" id="prestaProfilZone" placeholder="Ex: Lushi, Lubumbashi, Kolwezi">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Horaires de travail</label>
+                        <input type="text" id="prestaProfilHoraires" placeholder="Ex: Lun-Ven 8h-18h, Sam 9h-14h">
+                    </div>
+                    <div class="form-group">
+                        <label>Photos de réalisations</label>
+                        <input type="file" id="prestaPhotoInput" accept="image/*" multiple>
+                        <div id="prestaPhotoPreview" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+                        <div style="margin-top:8px;color:var(--gray);font-size:13px;">Formats: jpg, png, webp — Max 5MB
+                            par fichier</div>
+                        <div style="margin-top:12px;"><button type="button" class="btn-small"
+                                onclick="uploadPrestaPhotos()">Téléverser les photos</button></div>
+                        <div id="prestaPhotoServerList" style="margin-top:12px;"></div>
+                    </div>
+                    <button type="submit" class="btn-primary">Enregistrer les modifications</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Répondre à une demande (Devis) -->
+    <div class="modal" id="reponseModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('reponseModal')">&times;</span>
+            <h2>Répondre à la demande</h2>
+            <div class="demande-recap" id="reponseRecap"></div>
+            <form id="reponseForm" onsubmit="submitReponse(event)">
+                <input type="hidden" id="reponseDemandeId">
+                <div class="form-group">
+                    <label>Prix proposé (USD)</label>
+                    <input type="number" id="reponsePrix" required min="1" placeholder="Ex: 35">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date disponible</label>
+                        <input type="date" id="reponseDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Heure</label>
+                        <input type="time" id="reponseHeure" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Délai estimé</label>
+                    <input type="text" id="reponseDelai" placeholder="Ex: 2 heures, 1 journée">
+                </div>
+                <div class="form-group">
+                    <label>Message au client</label>
+                    <textarea id="reponseMessage" rows="3" placeholder="Bonjour, je peux intervenir..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Envoyer le devis</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Chat -->
+    <div class="modal" id="prestaChatModal">
+        <div class="modal-content modal-chat">
+            <div class="chat-header">
+                <div class="chat-user">
+                    <div class="avatar" id="prestaChatAvatar">C</div>
+                    <div>
+                        <strong id="prestaChatName">Client</strong>
+                        <span class="status online">En ligne</span>
+                    </div>
+                </div>
+                <span class="close" onclick="closeModal('prestaChatModal')">&times;</span>
+            </div>
+            <div class="chat-messages" id="prestaChatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="prestaChatInput" placeholder="Écrivez votre message..."
+                    onkeypress="if(event.key==='Enter')sendPrestaMessage()">
+                <button onclick="sendPrestaMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>'''

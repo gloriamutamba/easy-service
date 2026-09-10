@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Client — Easy Services</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dashboard-body">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-hands-helping"></i>
+            <span>Easy Services</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="active" onclick="showClientSection('recherche', this)">
+                <i class="fas fa-search"></i> Rechercher
+            </a>
+            <a href="#" onclick="showClientSection('demandes', this)">
+                <i class="fas fa-clipboard-list"></i> Mes demandes
+            </a>
+            <a href="#" onclick="showClientSection('messages', this)">
+                <i class="fas fa-comments"></i> Messages
+                <span class="badge hidden" id="msgBadge">0</span>
+            </a>
+            <a href="#" onclick="showClientSection('profil', this)">
+                <i class="fas fa-user"></i> Mon profil
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
+            <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <button class="nav-toggle" aria-label="Ouvrir le menu"
+                onclick="document.body.classList.toggle('sidebar-open')"><i class="fas fa-bars"></i></button>
+            <h1 id="clientWelcome">Bienvenue 👋</h1>
+            <div class="header-user">
+                <div class="notifications-bell" onclick="toggleNotifPanel()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-dot hidden" id="notifDot"></span>
+                </div>
+                <span id="clientName">Client</span>
+                <div class="avatar" id="clientAvatar">C</div>
+            </div>
+        </header>
+
+        <!-- Panel Notifications -->
+        <div class="notif-panel hidden" id="notifPanel">
+            <h4>Notifications</h4>
+            <div id="notifList"></div>
+        </div>
+
+        <!-- Section Recherche -->
+        <section class="client-section active" id="section-recherche">
+            <!-- Assistant dans l'espace client -->
+            <div class="client-assistant">
+                <h3><i class="fas fa-robot"></i> De quoi avez-vous besoin ?</h3>
+                <div class="client-assistant-box">
+                    <textarea id="clientAssistantInput"
+                        placeholder="Décrivez votre problème... Ex: J'ai une fuite sous l'évier"></textarea>
+                    <button class="btn-primary" onclick="clientAnalyzeProblem()">
+                        <i class="fas fa-magic"></i> Trouver le bon service
+                    </button>
+                </div>
+                <div class="client-assistant-result hidden" id="clientAssistantResult"></div>
+            </div>
+
+            <!-- Urgence Banner -->
+            <div class="urgence-banner hidden" id="urgenceBanner">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Mode Urgence activé — Affichage des prestataires disponibles maintenant</span>
+                <button onclick="disableUrgence()">Désactiver</button>
+            </div>
+
+            <div class="search-bar">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchMetier" placeholder="Quel métier recherchez-vous ?"
+                        onkeyup="filterPrestataires()">
+                </div>
+                <div class="search-input">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="searchVille" placeholder="Ville ou quartier" onkeyup="filterPrestataires()">
+                </div>
+                <button class="btn-primary" onclick="filterPrestataires()">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+            </div>
+
+            <div class="search-filters-row">
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterByCategory('all', this)">Tous</button>
+                    <button class="filter-btn" onclick="filterByCategory('Plombier', this)">Plombier</button>
+                    <button class="filter-btn" onclick="filterByCategory('Électricien', this)">Électricien</button>
+                    <button class="filter-btn" onclick="filterByCategory('Mécanicien', this)">Mécanicien</button>
+                    <button class="filter-btn" onclick="filterByCategory('Menuisier', this)">Menuisier</button>
+                    <button class="filter-btn" onclick="filterByCategory('Informaticien', this)">Informaticien</button>
+                    <button class="filter-btn" onclick="filterByCategory('Coiffeur', this)">Coiffeur</button>
+                    <button class="filter-btn" onclick="filterByCategory('Couturier', this)">Couturier</button>
+                </div>
+                <div class="filter-options">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="filterUrgence" onchange="filterPrestataires()">
+                        <span>🚨 Disponible maintenant</span>
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="filterCertifie" onchange="filterPrestataires()">
+                        <span>🔵 Certifié uniquement</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="prestataires-grid" id="prestatairesGrid">
+                <!-- Généré par JS -->
+            </div>
+        </section>
+
+        <!-- Section Mes Demandes -->
+        <section class="client-section" id="section-demandes">
+            <h2>Mes demandes de prestation</h2>
+            <div class="demandes-list" id="demandesList">
+                <!-- Généré par JS -->
+            </div>
+        </section>
+
+        <!-- Section Messages -->
+        <section class="client-section" id="section-messages">
+            <h2>Mes conversations</h2>
+            <div class="messages-container" id="messagesContainer">
+                <!-- Généré par JS -->
+            </div>
+        </section>
+
+        <!-- Section Profil -->
+        <section class="client-section" id="section-profil">
+            <h2>Mon profil</h2>
+            <div class="profil-card">
+                <form id="clientProfilForm" onsubmit="updateClientProfil(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nom</label>
+                            <input type="text" id="profilNom" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Prénom</label>
+                            <input type="text" id="profilPrenom" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="profilEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" id="profilPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ville</label>
+                            <input type="text" id="profilVille">
+                        </div>
+                        <div class="form-group">
+                            <label>Quartier</label>
+                            <input type="text" id="profilQuartier">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Adresse complète</label>
+                        <textarea id="profilAdresse" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Enregistrer les modifications</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Profil Prestataire -->
+    <div class="modal" id="prestataireModal">
+        <div class="modal-content modal-large">
+            <span class="close" onclick="closeModal('prestataireModal')">&times;</span>
+            <div id="prestataireDetail"></div>
+        </div>
+    </div>
+
+    <!-- Modal Nouvelle Demande -->
+    <div class="modal" id="demandeModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('demandeModal')">&times;</span>
+            <h2>Nouvelle demande</h2>
+            <form id="demandeForm" onsubmit="submitDemande(event)">
+                <input type="hidden" id="demandePrestataireId">
+                <div class="form-group">
+                    <label>Prestataire</label>
+                    <input type="text" id="demandePrestataireNom" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Description du besoin</label>
+                    <textarea id="demandeDescription" rows="4" required
+                        placeholder="Décrivez votre problème ou besoin en détail..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Adresse d'intervention</label>
+                    <input type="text" id="demandeAdresse" required placeholder="Votre adresse complète">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date souhaitée</label>
+                        <input type="date" id="demandeDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Heure souhaitée</label>
+                        <input type="time" id="demandeHeure">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Budget estimé (USD)</label>
+                    <input type="number" id="demandeBudget" placeholder="Ex: 50" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Urgence</label>
+                    <select id="demandeUrgence">
+                        <option value="normal">Normal</option>
+                        <option value="urgent">Urgent (dans les 24h)</option>
+                        <option value="extreme">Extrême (maintenant)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Envoyer la demande</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Chat -->
+    <div class="modal" id="chatModal">
+        <div class="modal-content modal-chat">
+            <div class="chat-header">
+                <div class="chat-user">
+                    <div class="avatar" id="chatAvatar">P</div>
+                    <div>
+                        <strong id="chatName">Prestataire</strong>
+                        <span class="status online">En ligne</span>
+                    </div>
+                </div>
+                <span class="close" onclick="closeModal('chatModal')">&times;</span>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input">
+                <input type="text" id="chatMessageInput" placeholder="Écrivez votre message..."
+                    onkeypress="if(event.key==='Enter')sendMessage()">
+                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>'''
