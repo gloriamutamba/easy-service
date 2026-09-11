@@ -1,13 +1,17 @@
 import os
 from datetime import datetime, timedelta
 try:
-    from flask import Flask, request, jsonify
-    from flask_sqlalchemy import SQLAlchemy
+    from flask import Flask, request, jsonify, send_from_directory
     from werkzeug.security import generate_password_hash, check_password_hash
     from werkzeug.utils import secure_filename
-    from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
-    from sqlalchemy import text
+    from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+    from sqlalchemy import text, or_, and_
     from flask_cors import CORS
+    from extensions import db, jwt
+    from models import (
+        User, Client, Prestataire, Demande, Devis, Message,
+        Category, Photo, TokenBlocklist,
+    )
 except Exception as e:
     print('Missing Python packages. Please install requirements from backend/requirements.txt')
     raise
@@ -15,113 +19,36 @@ except Exception as e:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'easyservices.db')
 
-# Serve frontend static files from workspace root (one level up)
-# Expose them at the application root so links like `/style.css` work
-app = Flask(__name__, static_folder=os.path.join(BASE_DIR, '..'), static_url_path='')
+FRONT_DIR = os.path.join(BASE_DIR, '..', 'front')
+app = Flask(__name__, static_folder=FRONT_DIR, static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.environ.get('EASYSERV_JWT_SECRET', 'dev-secret-change-me')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
-# allow reading token from cookies for admin.html protection
 app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
 app.config['JWT_ACCESS_COOKIE_NAME'] = 'es_token'
 app.config['JWT_COOKIE_SECURE'] = False
 
 CORS(app)
-db = SQLAlchemy(app)
-jwt = JWTManager(app)
+db.init_app(app)
+jwt.init_app(app)
 
-# Uploads
 UPLOAD_DIR = os.path.join(BASE_DIR, '..', 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB per file
 
-# Models
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    type = db.Column(db.String(32), nullable=False)  # client, prestataire, admin
-    name = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Prestataire(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    nom = db.Column(db.String(255))
-    metier = db.Column(db.String(128))
-    ville = db.Column(db.String(128))
-    zone_intervention = db.Column(db.String(255), nullable=True)
-    tarif = db.Column(db.Float, default=0)
-    description = db.Column(db.Text)
-    note = db.Column(db.Float, default=0)
-    avis_count = db.Column(db.Integer, default=0)
-    active = db.Column(db.Boolean, default=True)
-    horaires = db.Column(db.String(255), nullable=True)
-
-class Client(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    nom = db.Column(db.String(255))
-    email = db.Column(db.String(255))
-    phone = db.Column(db.String(64))
-    ville = db.Column(db.String(128))
-
-class Demande(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
-    prestataire_id = db.Column(db.Integer, db.ForeignKey('prestataire.id'))
-    description = db.Column(db.Text)
-    adresse = db.Column(db.String(255))
-    date = db.Column(db.String(32))
-    heure = db.Column(db.String(32))
-    budget = db.Column(db.Float, default=0)
-    status = db.Column(db.String(64), default='en_attente')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Devis(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    demande_id = db.Column(db.Integer, db.ForeignKey('demande.id'), nullable=False)
-    prestataire_id = db.Column(db.Integer, db.ForeignKey('prestataire.id'))
-    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
-    prix = db.Column(db.Float, default=0)
-    date = db.Column(db.String(32))
-    heure = db.Column(db.String(32))
-    delai = db.Column(db.String(64))
-    message = db.Column(db.Text)
-    status = db.Column(db.String(64), default='en_attente')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, nullable=False)
-    receiver_id = db.Column(db.Integer, nullable=False)
-    content = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    read = db.Column(db.Boolean, default=False)
-
-class Category(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), unique=True)
-    icon = db.Column(db.String(64))
-    count = db.Column(db.Integer, default=0)
-
-class Photo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    prestataire_id = db.Column(db.Integer, db.ForeignKey('prestataire.id'), nullable=False)
-    filename = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-class TokenBlocklist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    jti = db.Column(db.String(128), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 # Utilities
 def user_to_dict(u):
     return {'id': u.id, 'email': u.email, 'type': u.type, 'name': u.name}
+
+
+def current_user_id():
+    uid = get_jwt_identity()
+    try:
+        return int(uid)
+    except (TypeError, ValueError):
+        return uid
 
 
 @jwt.token_in_blocklist_loader
@@ -224,11 +151,51 @@ def logout():
 @app.route('/api/me')
 @jwt_required()
 def me():
-    uid = get_jwt_identity()
+    uid = current_user_id()
     user = User.query.get(uid)
     if not user:
         return jsonify({'error': 'not found'}), 404
     return jsonify({'user': user_to_dict(user)})
+
+
+@app.route('/api/stats')
+def public_stats():
+    return jsonify({
+        'prestataires': Prestataire.query.filter_by(active=True).count(),
+        'clients': Client.query.count(),
+        'missions': Demande.query.filter_by(status='terminee').count()
+    })
+
+
+@app.route('/api/client/me', methods=['GET', 'PUT'])
+@jwt_required()
+def client_me():
+    uid = current_user_id()
+    client = Client.query.filter_by(user_id=uid).first()
+    user = User.query.get(uid)
+    if not client:
+        return jsonify({'error': 'client not found'}), 404
+    if request.method == 'GET':
+        return jsonify({
+            'id': client.id,
+            'user_id': client.user_id,
+            'nom': client.nom,
+            'email': client.email or (user.email if user else ''),
+            'phone': client.phone,
+            'ville': client.ville
+        })
+    data = request.get_json() or {}
+    client.nom = data.get('nom', client.nom)
+    client.email = data.get('email', client.email)
+    client.phone = data.get('phone', client.phone)
+    client.ville = data.get('ville', client.ville)
+    if user:
+        if data.get('nom'):
+            user.name = data.get('nom')
+        if data.get('email'):
+            user.email = data.get('email')
+    db.session.commit()
+    return jsonify({'ok': True})
 
 @app.route('/api/prestataires')
 def list_prestataires():
@@ -243,26 +210,98 @@ def list_clients():
     clients = Client.query.all()
     return jsonify([{'id':c.id,'nom':c.nom,'email':c.email,'phone':c.phone,'ville':c.ville} for c in clients])
 
+def devis_to_dict(v):
+    return {
+        'id': v.id,
+        'demande_id': v.demande_id,
+        'prestataire_id': v.prestataire_id,
+        'client_id': v.client_id,
+        'prix': v.prix,
+        'date': v.date,
+        'heure': v.heure,
+        'delai': v.delai,
+        'message': v.message,
+        'status': v.status,
+        'created_at': v.created_at.isoformat() if v.created_at else ''
+    }
+
+
+def demande_to_dict(d):
+    client = Client.query.get(d.client_id)
+    presta = Prestataire.query.get(d.prestataire_id) if d.prestataire_id else None
+    devis = Devis.query.filter_by(demande_id=d.id).order_by(Devis.created_at.desc()).all()
+    return {
+        'id': d.id,
+        'client_id': d.client_id,
+        'prestataire_id': d.prestataire_id,
+        'description': d.description,
+        'adresse': d.adresse,
+        'date': d.date,
+        'heure': d.heure,
+        'budget': d.budget,
+        'status': d.status,
+        'created_at': d.created_at.isoformat() if d.created_at else '',
+        'client_nom': client.nom if client else '',
+        'client_user_id': client.user_id if client else None,
+        'prestataire_nom': presta.nom if presta else '',
+        'prestataire_user_id': presta.user_id if presta else None,
+        'devis': [devis_to_dict(v) for v in devis]
+    }
+
+
+def add_message(sender_id, receiver_id, content):
+    if not sender_id or not receiver_id or not content:
+        return
+    db.session.add(Message(sender_id=int(sender_id), receiver_id=int(receiver_id), content=content))
+
+
 @app.route('/api/demandes', methods=['GET','POST'])
 def demandes_route():
     if request.method == 'GET':
         ds = Demande.query.order_by(Demande.created_at.desc()).all()
-        return jsonify([{'id':d.id,'client_id':d.client_id,'prestataire_id':d.prestataire_id,'description':d.description,'date':d.date,'heure':d.heure,'status':d.status} for d in ds])
+        return jsonify([demande_to_dict(d) for d in ds])
     data = request.get_json() or {}
     client_id = data.get('client_id')
     if not client_id:
         return jsonify({'error':'client_id required'}),400
-    d = Demande(client_id=client_id, prestataire_id=data.get('prestataire_id'), description=data.get('description',''), adresse=data.get('adresse',''), date=data.get('date',''), heure=data.get('heure',''), budget=data.get('budget',0), status='en_attente')
+    try:
+        client_id = int(client_id)
+        presta_id = int(data.get('prestataire_id')) if data.get('prestataire_id') else None
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid ids'}), 400
+    d = Demande(client_id=client_id, prestataire_id=presta_id, description=data.get('description',''), adresse=data.get('adresse',''), date=data.get('date',''), heure=data.get('heure',''), budget=data.get('budget',0), status='en_attente')
     db.session.add(d)
     db.session.commit()
+    client = Client.query.get(client_id)
+    presta = Prestataire.query.get(presta_id) if presta_id else None
+    if client and presta:
+        add_message(client.user_id, presta.user_id, f"Nouvelle demande : {d.description}")
+        db.session.commit()
     return jsonify({'ok':True,'id':d.id}),201
 
-@app.route('/api/devis', methods=['POST'])
+@app.route('/api/devis', methods=['GET', 'POST'])
 @jwt_required()
-def create_devis():
+def devis_route():
+    uid = current_user_id()
+    user = User.query.get(uid)
+    if request.method == 'GET':
+        if user and user.type == 'prestataire':
+            presta = Prestataire.query.filter_by(user_id=uid).first()
+            qs = Devis.query.filter_by(prestataire_id=presta.id).order_by(Devis.created_at.desc()).all() if presta else []
+        elif user and user.type == 'client':
+            client = Client.query.filter_by(user_id=uid).first()
+            qs = Devis.query.filter_by(client_id=client.id).order_by(Devis.created_at.desc()).all() if client else []
+        else:
+            qs = []
+        return jsonify([devis_to_dict(v) for v in qs])
+
+    if not user or user.type != 'prestataire':
+        return jsonify({'error':'not prestataire'}),403
     data = request.get_json() or {}
-    demande_id = data.get('demande_id')
-    uid = get_jwt_identity()
+    try:
+        demande_id = int(data.get('demande_id'))
+    except (TypeError, ValueError):
+        return jsonify({'error':'demande not found'}),404
     presta = Prestataire.query.filter_by(user_id=uid).first()
     if not presta:
         return jsonify({'error':'not prestataire'}),403
@@ -272,19 +311,102 @@ def create_devis():
     dv = Devis(demande_id=demande_id, prestataire_id=presta.id, client_id=dem.client_id, prix=data.get('prix',0), date=data.get('date',''), heure=data.get('heure',''), delai=data.get('delai',''), message=data.get('message',''), status='en_attente')
     db.session.add(dv)
     dem.status = 'devis_envoye'
+    client = Client.query.get(dem.client_id)
+    if client:
+        recap = f"Devis envoyé : {dv.prix} $ pour « {dem.description} »"
+        if dv.message:
+            recap += f" — {dv.message}"
+        add_message(presta.user_id, client.user_id, recap)
     db.session.commit()
     return jsonify({'ok':True,'id':dv.id}),201
 
+
+@app.route('/api/devis/<int:devis_id>/repondre', methods=['POST'])
+@jwt_required()
+def repondre_devis(devis_id):
+    uid = current_user_id()
+    client = Client.query.filter_by(user_id=uid).first()
+    if not client:
+        return jsonify({'error': 'forbidden'}), 403
+    dv = Devis.query.get(devis_id)
+    if not dv or dv.client_id != client.id:
+        return jsonify({'error': 'not found'}), 404
+    action = (request.get_json() or {}).get('action')
+    presta = Prestataire.query.get(dv.prestataire_id)
+    dem = Demande.query.get(dv.demande_id)
+    if action == 'accepter':
+        dv.status = 'accepte'
+        if dem:
+            dem.status = 'acceptee'
+        if presta:
+            add_message(client.user_id, presta.user_id, f"Le client a accepté le devis de {dv.prix} $.")
+    elif action == 'refuser':
+        dv.status = 'refuse'
+        if dem:
+            dem.status = 'refusee'
+        if presta:
+            add_message(client.user_id, presta.user_id, f"Le client a refusé le devis de {dv.prix} $.")
+    else:
+        return jsonify({'error': 'action invalide'}), 400
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@app.route('/api/conversations')
+@jwt_required()
+def conversations():
+    uid = current_user_id()
+    ms = Message.query.filter(or_(Message.sender_id == uid, Message.receiver_id == uid)).order_by(Message.timestamp.desc()).all()
+    seen = {}
+    for m in ms:
+        other = m.receiver_id if m.sender_id == uid else m.sender_id
+        if other in seen:
+            continue
+        other_user = User.query.get(other)
+        seen[other] = {
+            'partner_id': other,
+            'partner_name': (other_user.name if other_user else None) or 'Utilisateur',
+            'partner_type': other_user.type if other_user else '',
+            'last_message': m.content,
+            'last_at': m.timestamp.isoformat() if m.timestamp else ''
+        }
+    return jsonify(list(seen.values()))
+
+
 @app.route('/api/messages', methods=['GET','POST'])
+@jwt_required()
 def messages_route():
+    uid = current_user_id()
     if request.method == 'GET':
-        ms = Message.query.order_by(Message.timestamp.asc()).all()
-        return jsonify([{'id':m.id,'sender_id':m.sender_id,'receiver_id':m.receiver_id,'content':m.content,'timestamp':m.timestamp.isoformat()} for m in ms])
+        other = request.args.get('with')
+        if other:
+            try:
+                oid = int(other)
+            except (TypeError, ValueError):
+                return jsonify([])
+            ms = Message.query.filter(
+                or_(
+                    and_(Message.sender_id == uid, Message.receiver_id == oid),
+                    and_(Message.sender_id == oid, Message.receiver_id == uid)
+                )
+            ).order_by(Message.timestamp.asc()).all()
+        else:
+            ms = Message.query.filter(or_(Message.sender_id == uid, Message.receiver_id == uid)).order_by(Message.timestamp.asc()).all()
+        return jsonify([{'id':m.id,'sender_id':m.sender_id,'receiver_id':m.receiver_id,'content':m.content,'timestamp':m.timestamp.isoformat() if m.timestamp else ''} for m in ms])
     data = request.get_json() or {}
-    m = Message(sender_id=data.get('sender_id'), receiver_id=data.get('receiver_id'), content=data.get('content'))
+    try:
+        receiver_id = int(data.get('receiver_id'))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'receiver_id required'}), 400
+    content = (data.get('content') or '').strip()
+    if not content:
+        return jsonify({'error': 'content required'}), 400
+    if receiver_id == uid:
+        return jsonify({'error': 'invalid receiver'}), 400
+    m = Message(sender_id=uid, receiver_id=receiver_id, content=content)
     db.session.add(m)
     db.session.commit()
-    return jsonify({'ok':True,'id':m.id}),201
+    return jsonify({'ok':True,'id':m.id,'timestamp': m.timestamp.isoformat() if m.timestamp else ''}),201
 
 @app.route('/api/categories')
 def get_categories():
@@ -326,6 +448,10 @@ def delete_category(cat_id):
 
 
 def is_admin_user(uid):
+    try:
+        uid = int(uid)
+    except (TypeError, ValueError):
+        pass
     u = User.query.get(uid)
     return u and u.type == 'admin'
 
@@ -381,21 +507,12 @@ def admin_demandes():
     return jsonify(out)
 
 
-# Protect admin.html route: only serve to admin users
 @app.route('/admin.html')
 def admin_page():
-    # try to verify token from Authorization header
-    try:
-        # this will raise if token missing/invalid
-        from flask_jwt_extended import verify_jwt_in_request_optional
-        verify_jwt_in_request_optional()
-        uid = get_jwt_identity()
-        if uid and is_admin_user(uid):
-            return app.send_static_file('admin.html')
-    except Exception:
-        pass
-    # not authorized -> redirect to index (frontend will ask user to login)
-    return app.send_static_file('index.html')
+    # Auth is enforced in the frontend via /api/me.
+    # Serving index.html here hid the admin UI even for valid admins
+    # (flask-jwt-extended 4.x has no verify_jwt_in_request_optional).
+    return app.send_static_file('admin.html')
 
 
 @app.route('/api/prestataire/me', methods=['GET','PUT'])
@@ -407,7 +524,21 @@ def prestataire_me():
     if not presta:
         return jsonify({'error':'prestataire not found'}), 404
     if request.method == 'GET':
-        return jsonify({'id':presta.id,'user_id':presta.user_id,'nom':presta.nom,'metier':presta.metier,'ville':presta.ville,'tarif':presta.tarif,'description':presta.description,'note':presta.note,'active':presta.active})
+        return jsonify({
+            'id': presta.id,
+            'user_id': presta.user_id,
+            'nom': presta.nom,
+            'metier': presta.metier,
+            'ville': presta.ville,
+            'tarif': presta.tarif,
+            'description': presta.description,
+            'note': presta.note,
+            'active': presta.active,
+            'horaires': presta.horaires or '',
+            'zone_intervention': presta.zone_intervention or '',
+            'email': user.email if user else '',
+            'phone': getattr(presta, 'phone', '') or ''
+        })
     data = request.get_json() or {}
     presta.nom = data.get('nom', presta.nom)
     presta.metier = data.get('metier', presta.metier)
@@ -528,10 +659,14 @@ def delete_presta_photo(photo_id):
     return jsonify({'ok':True})
 
 
-# Serve index at root
 @app.route('/')
 def index_root():
     return app.send_static_file('index.html')
+
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
 
 # DB init
 def ensure_prestataire_columns():

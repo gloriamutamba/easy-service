@@ -1,5 +1,10 @@
 Backend Flask + SQLite for Easy Services
 
+Layout
+- `app.py` — routes API
+- `extensions.py` — instances `db` et `jwt`
+- `models/` — un fichier par modèle (`user.py`, `client.py`, `prestataire.py`, …)
+
 Prerequisites
 - Python 3.9+ (3.10 recommended)
 
