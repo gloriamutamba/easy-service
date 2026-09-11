@@ -456,9 +456,10 @@ async function initIndex() {
             }
         }
 
-        // prestataires recommandés : note, avis, photo, métiers variés
+        // aperçu recommandés (page dédiée pour la liste complète)
         if (topGrid) {
-            const top = pickRecommendedPrestataires(prestas, 6);
+            const previewCount = document.querySelector('.rec-grid-preview') ? 3 : 6;
+            const top = pickRecommendedPrestataires(prestas, previewCount);
             if (!top.length) {
                 topGrid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Aucun prestataire mis en avant pour le moment.</p>';
             } else {
@@ -469,14 +470,7 @@ async function initIndex() {
         bindAssistantComposer();
         bindAvisStars();
         renderLandingAvis();
-
-        // auth UI
-        const user = getCurrentUserVerified();
-        if (user) {
-            if (el('navAuth')) el('navAuth').classList.add('hidden');
-            if (el('navUser')) { el('navUser').classList.remove('hidden'); if (el('userNameDisplay')) el('userNameDisplay').textContent = user.name || user.nom || user.email; }
-            if (user.type === 'admin' && el('navAdminBtn')) el('navAdminBtn').classList.remove('hidden');
-        }
+        applyMarketingAuth();
 
         const params = new URLSearchParams(window.location.search);
         if (params.get('login') === '1') { ensureAuthModals(); showModal('loginModal'); }
@@ -487,6 +481,7 @@ async function initIndex() {
         if (catsContainer) catsContainer.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Erreur lors du chargement. Réessayez.</p>';
         if (topGrid) topGrid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Erreur lors du chargement. Réessayez.</p>';
         document.dispatchEvent(new CustomEvent('landing:ready'));
+        applyMarketingAuth();
     }
 }
 
@@ -539,8 +534,10 @@ async function initClient() {
         document.querySelectorAll('.filter-btn').forEach(b => {
             b.classList.toggle('active', normalizeText(b.textContent) === normalizeText(cat));
         });
-        filterPrestataires();
     }
+    const ville = params.get('ville');
+    if (ville && el('searchVille')) el('searchVille').value = ville;
+    if (cat || ville) filterPrestataires();
     const presta = params.get('presta');
     if (presta) showPrestataireProfile(presta);
     if (params.get('login') === '1') { ensureAuthModals(); showModal('loginModal'); }
@@ -550,6 +547,106 @@ async function initClient() {
         renderClientMessages();
         fillClientProfil();
         renderClientNotifications();
+    }
+}
+
+function applyMarketingAuth() {
+    const user = getCurrentUserVerified();
+    if (!user) return;
+    if (el('navAuth')) el('navAuth').classList.add('hidden');
+    if (el('navUser')) {
+        el('navUser').classList.remove('hidden');
+        if (el('userNameDisplay')) el('userNameDisplay').textContent = user.name || user.nom || user.email;
+    }
+    if (user.type === 'admin' && el('navAdminBtn')) el('navAdminBtn').classList.remove('hidden');
+}
+
+function goUrgentSearch(e, metierPreset) {
+    if (e && e.preventDefault) e.preventDefault();
+    const metier = metierPreset || ((el('urgentMetier') || {}).value || '');
+    const ville = ((el('urgentVille') || {}).value || '').trim();
+    const q = new URLSearchParams({ urgence: '1' });
+    if (metier) q.set('cat', metier);
+    if (ville) q.set('ville', ville);
+    window.location.href = 'client.html?' + q.toString();
+}
+
+function renderRecGrid(list) {
+    const grid = el('topPrestatairesGrid');
+    if (!grid) return;
+    if (!list.length) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Aucun prestataire pour ces filtres.</p>';
+        return;
+    }
+    grid.innerHTML = list.map(recCardHtml).join('');
+    document.dispatchEvent(new CustomEvent('landing:ready'));
+}
+
+async function initRecommandes() {
+    applyMarketingAuth();
+    bindAssistantComposer();
+    const grid = el('topPrestatairesGrid');
+    if (grid) grid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Chargement...</p>';
+    try {
+        const res = await apiFetch('/prestataires', { method: 'GET' });
+        const prestas = (res && res.status === 200 && Array.isArray(res.body)) ? res.body : (DB.get('prestataires') || []);
+        window._recPrestas = pickRecommendedPrestataires(prestas, prestas.length);
+        renderRecGrid(window._recPrestas);
+    } catch (e) {
+        console.error(e);
+        if (grid) grid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Erreur lors du chargement.</p>';
+    }
+}
+
+function filterRecommandes() {
+    const metier = ((el('recFilterMetier') || {}).value || '').trim();
+    const ville = ((el('recFilterVille') || {}).value || '').trim().toLowerCase();
+    let list = window._recPrestas || [];
+    if (metier) list = list.filter(p => (p.metier || '') === metier);
+    if (ville) list = list.filter(p => ((p.ville || '') + ' ' + (p.zone_intervention || '')).toLowerCase().includes(ville));
+    renderRecGrid(list);
+}
+
+function initContact() {
+    applyMarketingAuth();
+    bindAssistantComposer();
+    const user = getCurrentUserVerified();
+    if (user) {
+        if (el('contactNom')) el('contactNom').value = user.name || user.nom || '';
+        if (el('contactEmail')) el('contactEmail').value = user.email || '';
+    }
+}
+
+async function submitContact(e) {
+    if (e) e.preventDefault();
+    const err = el('contactFormError');
+    const ok = el('contactFormOk');
+    if (err) { err.classList.add('hidden'); err.textContent = ''; }
+    if (ok) ok.classList.add('hidden');
+    const payload = {
+        nom: ((el('contactNom') || {}).value || '').trim(),
+        email: ((el('contactEmail') || {}).value || '').trim(),
+        sujet: ((el('contactSujet') || {}).value || 'question'),
+        message: ((el('contactMessage') || {}).value || '').trim()
+    };
+    if (!payload.nom || !payload.email || payload.message.length < 10) {
+        if (err) { err.textContent = 'Nom, email et un message d’au moins 10 caractères sont requis.'; err.classList.remove('hidden'); }
+        return;
+    }
+    try {
+        const res = await apiFetch('/contact', { method: 'POST', body: JSON.stringify(payload) });
+        if (res && (res.status === 201 || res.status === 200) && res.body && res.body.ok) {
+            if (el('contactMessage')) el('contactMessage').value = '';
+            if (ok) ok.classList.remove('hidden');
+            return;
+        }
+        if (err) {
+            err.textContent = (res && res.body && res.body.error) || 'Envoi impossible.';
+            err.classList.remove('hidden');
+        }
+    } catch (ex) {
+        console.error(ex);
+        if (err) { err.textContent = 'Erreur réseau.'; err.classList.remove('hidden'); }
     }
 }
 
@@ -1599,6 +1696,8 @@ document.addEventListener('DOMContentLoaded', () => {
     DB.init();
     const path = window.location.pathname.toLowerCase();
     if (path.includes('index.html') || path.endsWith('/') || path.endsWith('easy-service') || path.endsWith('easy-services')) initIndex();
+    if (path.includes('recommandes.html')) initRecommandes();
+    if (path.includes('contact.html')) initContact();
     if (path.includes('client.html')) initClient();
     if (path.includes('prestataire.html')) initPrestataire();
     if (path.includes('admin.html')) initAdmin();

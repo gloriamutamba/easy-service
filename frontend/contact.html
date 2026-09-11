@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact — Easy Services</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="inner-page">
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <i class="fas fa-hands-helping"></i>
+            <span>Easy Services</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Accueil</a>
+            <a href="recommandes.html">Recommandés</a>
+            <a href="index.html#categories">Catégories</a>
+            <a href="index.html#comment-ca-marche">Comment ça marche</a>
+            <a href="index.html#avis">Avis</a>
+            <a href="contact.html" class="active">Contact</a>
+        </div>
+        <button class="nav-toggle" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('nav-open')"><i
+                class="fas fa-bars"></i></button>
+        <div class="nav-auth" id="navAuth">
+            <button class="btn-login" onclick="ensureAuthModals();showModal('loginModal')">Connexion</button>
+            <button class="btn-register" onclick="ensureAuthModals();showModal('registerModal')">Inscription</button>
+        </div>
+        <div class="nav-user hidden" id="navUser">
+            <span id="userNameDisplay"></span>
+            <button id="navAdminBtn" class="btn-admin hidden"
+                onclick="window.location.href='admin.html'">Administration</button>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <header class="page-hero">
+        <p class="section-eyebrow">Contact</p>
+        <h1>On est là pour vous aider</h1>
+        <p>Une question sur un devis, un compte ou un partenariat ? Écrivez-nous ou passez par les coordonnées ci-dessous.</p>
+    </header>
+
+    <section class="page-section contact-page">
+        <div class="contact-infos">
+            <article class="contact-card">
+                <span class="contact-card-icon"><i class="fas fa-envelope"></i></span>
+                <h3>Email</h3>
+                <p>Réponse sous 24 h, jours ouvrés.</p>
+                <a href="mailto:contact@easyservices.cd">contact@easyservices.cd</a>
+            </article>
+            <article class="contact-card">
+                <span class="contact-card-icon"><i class="fas fa-phone"></i></span>
+                <h3>Téléphone</h3>
+                <p>Urgence ou suivi d’une mission.</p>
+                <a href="tel:+243999999999">+243 999 999 999</a>
+            </article>
+            <article class="contact-card">
+                <span class="contact-card-icon"><i class="fas fa-map-marker-alt"></i></span>
+                <h3>Adresse</h3>
+                <p>Bureau de coordination, Lushi.</p>
+                <span>Av. Lumumba, Lushi, RDC</span>
+            </article>
+            <article class="contact-card">
+                <span class="contact-card-icon"><i class="fas fa-clock"></i></span>
+                <h3>Horaires</h3>
+                <p>Lun–Sam · 8h00 – 18h00</p>
+                <span>Dimanche : urgences uniquement</span>
+            </article>
+        </div>
+
+        <div class="contact-grid">
+            <form class="avis-form contact-form" id="contactForm" onsubmit="submitContact(event)">
+                <h3>Envoyer un message</h3>
+                <p class="avis-form-hint">Décrivez votre demande, on vous répond à l’email indiqué.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contactNom">Nom</label>
+                        <input type="text" id="contactNom" required maxlength="80" placeholder="Votre nom">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmail">Email</label>
+                        <input type="email" id="contactEmail" required placeholder="vous@email.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="contactSujet">Sujet</label>
+                    <select id="contactSujet" required>
+                        <option value="question">Question générale</option>
+                        <option value="compte">Compte / connexion</option>
+                        <option value="mission">Suivi d’une mission</option>
+                        <option value="partenariat">Devenir prestataire</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="contactMessage">Message</label>
+                    <textarea id="contactMessage" required minlength="10" rows="5"
+                        placeholder="Écrivez votre message…"></textarea>
+                </div>
+                <p class="avis-form-error hidden" id="contactFormError"></p>
+                <p class="contact-ok hidden" id="contactFormOk">Message envoyé. Nous vous répondrons bientôt.</p>
+                <button type="submit" class="btn-solid">Envoyer</button>
+            </form>
+            <aside class="contact-aside">
+                <h3>Zones couvertes</h3>
+                <ul>
+                    <li>Lushi et quartiers alentour</li>
+                    <li>Lubumbashi</li>
+                    <li>Kolwezi</li>
+                </ul>
+                <h3>Besoin d’un pro tout de suite ?</h3>
+                <p>Passez par la recherche urgente depuis l’accueil, ou ouvrez directement l’espace client.</p>
+                <div class="cta-pair">
+                    <a href="index.html#urgence" class="btn-ghost">Recherche urgente</a>
+                    <a href="client.html" class="btn-solid">Espace client</a>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="footer-mini">
+            <span>Easy Services — Lushi, Lubumbashi, Kolwezi</span>
+            <div class="footer-mini-infos">
+                <a href="mailto:contact@easyservices.cd">contact@easyservices.cd</a>
+                <span>+243 999 999 999</span>
+            </div>
+        </div>
+    </footer>
+
+    <button type="button" class="assistant-fab" id="assistantFab" aria-expanded="false"
+        aria-controls="assistantWidget" onclick="toggleAssistant(true)">
+        <i class="fas fa-comment-dots"></i>
+        <span>Assistant</span>
+    </button>
+    <div class="assistant-widget" id="assistantWidget" aria-hidden="true">
+        <div class="assistant-widget-head">
+            <div>
+                <strong>Easy Assistant</strong>
+                <span>Décrivez votre besoin, on vous oriente</span>
+            </div>
+            <button type="button" class="assistant-widget-close" aria-label="Fermer"
+                onclick="toggleAssistant(false)"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="assistant-thread" id="assistantThread">
+            <div class="chat-bubble chat-bot">Bonjour ! Une question ou un besoin ? Je vous oriente.</div>
+        </div>
+        <form class="assistant-composer" onsubmit="analyzeProblem(event)">
+            <textarea id="assistantInput" rows="1" placeholder="Écrivez votre besoin…"></textarea>
+            <button type="submit" class="assistant-send" aria-label="Envoyer"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+    <script type="module" src="motion-landing.js"></script>
+</body>
+
+</html>

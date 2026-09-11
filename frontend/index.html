@@ -14,17 +14,17 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-brand">
+        <a class="nav-brand" href="index.html">
             <i class="fas fa-hands-helping"></i>
             <span>Easy Services</span>
-        </div>
+        </a>
         <div class="nav-links">
             <a href="#accueil" data-section="accueil" class="active">Accueil</a>
-            <a href="#top-prestataires" data-section="top-prestataires">Recommandés</a>
+            <a href="recommandes.html">Recommandés</a>
             <a href="#categories" data-section="categories">Catégories</a>
             <a href="#comment-ca-marche" data-section="comment-ca-marche">Comment ça marche</a>
             <a href="#avis" data-section="avis">Avis</a>
-            <a href="#contact" data-section="contact">Contact</a>
+            <a href="contact.html">Contact</a>
         </div>
         <button class="nav-toggle" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('nav-open')"><i
                 class="fas fa-bars"></i></button>
@@ -98,28 +98,46 @@
         </div>
     </section>
 
-    <!-- Bouton Urgence -->
-    <section class="urgence-section">
-        <div class="urgence-box" onclick="window.location.href='client.html?urgence=1'">
-            <div class="urgence-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="urgence-text">
-                <h3>Besoin urgent ?</h3>
-                <p>Trouvez immédiatement un prestataire disponible près de chez vous.</p>
+    <!-- Recherche urgente -->
+    <section class="urgent-finder reveal-section" id="urgence">
+        <div class="urgent-card">
+            <div class="urgent-copy">
+                <p class="section-eyebrow">Intervention rapide</p>
+                <h2>Trouver un pro tout de suite</h2>
+                <p>Choisissez le métier et la ville. La recherche s’ouvre en mode urgence, avec les prestataires disponibles maintenant.</p>
             </div>
-            <button class="btn-urgence">Trouver maintenant <i class="fas fa-arrow-right"></i></button>
+            <form class="urgent-form" onsubmit="goUrgentSearch(event)">
+                <select id="urgentMetier" required>
+                    <option value="">Quel métier ?</option>
+                    <option value="Plombier">Plombier</option>
+                    <option value="Électricien">Électricien</option>
+                    <option value="Serrurier">Serrurier</option>
+                    <option value="Mécanicien">Mécanicien</option>
+                    <option value="Informaticien">Informaticien</option>
+                </select>
+                <input type="text" id="urgentVille" placeholder="Ville (Lushi, Lubumbashi…)">
+                <button type="submit" class="btn-solid">Trouver maintenant</button>
+            </form>
+            <div class="urgent-chips">
+                <button type="button" onclick="goUrgentSearch(null, 'Plombier')">Fuite / plomberie</button>
+                <button type="button" onclick="goUrgentSearch(null, 'Électricien')">Coupure / électricité</button>
+                <button type="button" onclick="goUrgentSearch(null, 'Serrurier')">Porte / serrure</button>
+                <button type="button" onclick="goUrgentSearch(null, 'Mécanicien')">Panne auto</button>
+            </div>
         </div>
     </section>
 
-    <!-- Top Prestataires -->
-    <section class="top-prestataires reveal-section" id="top-prestataires">
+    <!-- Teaser recommandés -->
+    <section class="rec-teaser reveal-section" id="top-prestataires">
         <div class="section-heading">
             <p class="section-eyebrow">01 — Réseau</p>
-            <h2>Prestataires recommandés</h2>
-            <p>Des professionnels déjà en mission près de chez vous. Photo si disponible, sinon initiale.</p>
+            <h2>Quelques prestataires mis en avant</h2>
+            <p>Un aperçu. La liste complète est sur la page Recommandés.</p>
         </div>
-        <div class="rec-grid" id="topPrestatairesGrid"></div>
-        <div class="section-cta">
-            <a href="client.html" class="btn-primary">Voir tous les prestataires</a>
+        <div class="rec-grid rec-grid-preview" id="topPrestatairesGrid"></div>
+        <div class="cta-pair">
+            <a href="recommandes.html" class="btn-solid">Voir les recommandés</a>
+            <a href="client.html" class="btn-ghost">Parcourir tous les prestataires</a>
         </div>
     </section>
 
@@ -204,30 +222,15 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer id="contact">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <i class="fas fa-hands-helping"></i>
-                <span>Easy Services</span>
-                <p>La plateforme de mise en relation entre clients et prestataires qualifiés.</p>
+    <!-- Footer : infos essentielles seulement -->
+    <footer class="site-footer">
+        <div class="footer-mini">
+            <span>Easy Services — Lushi, Lubumbashi, Kolwezi</span>
+            <div class="footer-mini-infos">
+                <a href="mailto:contact@easyservices.cd">contact@easyservices.cd</a>
+                <span>+243 999 999 999</span>
+                <a href="contact.html">Page contact</a>
             </div>
-            <div class="footer-links">
-                <h4>Liens rapides</h4>
-                <a href="client.html">Espace Client</a>
-                <a href="prestataire.html">Espace Prestataire</a>
-                <a href="#">Conditions d'utilisation</a>
-                <a href="#">Politique de confidentialité</a>
-            </div>
-            <div class="footer-contact">
-                <h4>Contact</h4>
-                <p><i class="fas fa-envelope"></i> contact@easyservices.cd</p>
-                <p><i class="fas fa-phone"></i> +243 999 999 999</p>
-                <p><i class="fas fa-map-marker-alt"></i> Lushi, RDC</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2026 Easy Services. Tous droits réservés.</p>
         </div>
     </footer>
 

@@ -10,7 +10,7 @@ try:
     from extensions import db, jwt
     from models import (
         User, Client, Prestataire, Demande, Devis, Message,
-        Category, Photo, TokenBlocklist, Avis,
+        Category, Photo, TokenBlocklist, Avis, ContactMessage,
     )
 except Exception as e:
     print('Missing Python packages. Please install requirements from backend/requirements.txt')
@@ -749,6 +749,21 @@ def api_avis():
     db.session.add(avis)
     db.session.commit()
     return jsonify(avis_to_dict(avis)), 201
+
+
+@app.route('/api/contact', methods=['POST'])
+def api_contact():
+    data = request.get_json() or {}
+    nom = (data.get('nom') or '').strip()
+    email = (data.get('email') or '').strip()
+    sujet = (data.get('sujet') or 'question').strip()[:64]
+    message = (data.get('message') or '').strip()
+    if not nom or not email or len(message) < 10:
+        return jsonify({'error': 'Nom, email et un message d’au moins 10 caractères sont requis.'}), 400
+    row = ContactMessage(nom=nom[:80], email=email[:255], sujet=sujet, message=message[:2000])
+    db.session.add(row)
+    db.session.commit()
+    return jsonify({'ok': True, 'id': row.id}), 201
 
 
 def seed_avis_if_empty():

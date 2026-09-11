@@ -7194,11 +7194,11 @@ html {
 }
 
 #accueil,
+#urgence,
 #top-prestataires,
 #categories,
 #comment-ca-marche,
-#avis,
-#contact {
+#avis {
     scroll-margin-top: 88px;
 }
 
@@ -7775,5 +7775,293 @@ html {
 
     .assistant-fab span {
         display: none;
+    }
+}
+
+a.nav-brand {
+    text-decoration: none;
+}
+
+.cta-pair {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.cta-pair .btn-ghost,
+.cta-pair .btn-solid {
+    display: inline-block;
+    flex: 0 1 auto;
+    min-width: 220px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.urgent-finder {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 8px 48px 48px;
+}
+
+.urgent-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.urgent-copy h2 {
+    font-size: 26px;
+    letter-spacing: -0.03em;
+    margin: 6px 0 8px;
+    color: #0f172a;
+}
+
+.urgent-copy p {
+    color: #64748b;
+    font-size: 15px;
+    margin-bottom: 18px;
+}
+
+.urgent-form {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr auto;
+    gap: 10px;
+}
+
+.urgent-form select,
+.urgent-form input {
+    margin: 0;
+}
+
+.urgent-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.urgent-chips button {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #334155;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.urgent-chips button:hover {
+    border-color: #cbd5e1;
+    background: #fff;
+}
+
+.rec-teaser {
+    padding: 48px 48px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.rec-grid-preview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.site-footer {
+    margin-top: 40px;
+    padding: 24px 48px;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.footer-mini {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.footer-mini-infos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer-mini-infos a {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.inner-page {
+    background: #f8fafc;
+}
+
+.page-hero {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 120px 48px 24px;
+}
+
+.page-hero h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -0.04em;
+    margin: 8px 0 10px;
+    color: #0f172a;
+}
+
+.page-hero > p {
+    max-width: 640px;
+    color: #64748b;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.page-section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 12px 48px 64px;
+}
+
+.rec-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.rec-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rec-filters select,
+.rec-filters input {
+    width: auto;
+    min-width: 200px;
+    margin: 0;
+}
+
+.rec-toolbar .btn-solid {
+    text-decoration: none;
+    text-align: center;
+}
+
+.contact-infos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.contact-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px;
+}
+
+.contact-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f172a;
+    margin-bottom: 12px;
+}
+
+.contact-card h3 {
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.contact-card p,
+.contact-card span {
+    display: block;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.contact-card a {
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.contact-aside {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.contact-aside h3 {
+    font-size: 16px;
+    margin: 0 0 8px;
+}
+
+.contact-aside h3 + p,
+.contact-aside li {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.contact-aside ul {
+    margin: 0 0 20px 18px;
+}
+
+.contact-ok {
+    color: #166534;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.js-motion .urgent-card,
+.js-motion .page-hero,
+.js-motion .contact-card {
+    opacity: 0;
+}
+
+@media (max-width: 900px) {
+    .urgent-finder,
+    .rec-teaser,
+    .page-hero,
+    .page-section,
+    .site-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .urgent-form,
+    .contact-infos,
+    .contact-grid,
+    .rec-grid-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-pair .btn-ghost,
+    .cta-pair .btn-solid {
+        width: 100%;
     }
 }

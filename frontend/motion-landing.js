@@ -67,6 +67,7 @@ function setupScrollSpy() {
 }
 
 function playHero() {
+    fadeUp('.page-hero');
     fadeUp('.hero-kicker, .hero-content h1, .hero-content > p, .hero-buttons', {
         delay: stagger(0.08)
     });
@@ -88,9 +89,11 @@ if (document.readyState === 'loading') {
     playHero();
 }
 
-revealWhenVisible('.urgence-section', '.urgence-box');
+revealWhenVisible('.urgent-finder', '.urgent-card');
+revealWhenVisible('.rec-teaser', '.rec-card, .cta-pair');
 revealWhenVisible('#comment-ca-marche', '.step');
 revealWhenVisible('#avis', '.avis-card, .avis-form');
+revealWhenVisible('.contact-page', '.contact-card, .contact-form, .contact-aside');
 
 if (document.querySelector('.rec-card, .category-card')) {
     playDynamicCards();
@@ -99,7 +102,7 @@ document.addEventListener('landing:ready', playDynamicCards);
 document.addEventListener('landing:avis', () => fadeUp('.avis-card', { delay: stagger(0.06) }));
 
 window.setTimeout(() => {
-    document.querySelectorAll('.hero-kicker, .hero-content h1, .hero-content > p, .hero-buttons, .hero-visual, .hero-stat, .section-heading, .urgence-box, .rec-card, .category-card, .step, .avis-card, .avis-form').forEach(node => {
+    document.querySelectorAll('.hero-kicker, .hero-content h1, .hero-content > p, .hero-buttons, .hero-visual, .hero-stat, .section-heading, .urgent-card, .rec-card, .category-card, .step, .avis-card, .avis-form, .contact-card, .page-hero').forEach(node => {
         if (getComputedStyle(node).opacity === '0') {
             node.style.opacity = '1';
             node.style.transform = 'none';
