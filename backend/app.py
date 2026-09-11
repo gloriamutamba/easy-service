@@ -273,16 +273,33 @@ def add_message(sender_id, receiver_id, content):
 
 
 @app.route('/api/demandes', methods=['GET','POST'])
+@jwt_required()
 def demandes_route():
+    uid = current_user_id()
+    user = User.query.get(uid)
+    if not user:
+        return jsonify({'error': 'unauthorized'}), 401
     if request.method == 'GET':
-        ds = Demande.query.order_by(Demande.created_at.desc()).all()
+        query = Demande.query.order_by(Demande.created_at.desc())
+        if user.type == 'admin':
+            ds = query.all()
+        elif user.type == 'client':
+            client = Client.query.filter_by(user_id=uid).first()
+            ds = query.filter_by(client_id=client.id).all() if client else []
+        elif user.type == 'prestataire':
+            presta = Prestataire.query.filter_by(user_id=uid).first()
+            ds = query.filter_by(prestataire_id=presta.id).all() if presta else []
+        else:
+            ds = []
         return jsonify([demande_to_dict(d) for d in ds])
+    if user.type != 'client':
+        return jsonify({'error': 'Seuls les clients peuvent créer une demande.'}), 403
     data = request.get_json() or {}
-    client_id = data.get('client_id')
-    if not client_id:
-        return jsonify({'error':'client_id required'}),400
+    client = Client.query.filter_by(user_id=uid).first()
+    if not client:
+        return jsonify({'error': 'Profil client introuvable.'}), 404
+    client_id = client.id
     try:
-        client_id = int(client_id)
         presta_id = int(data.get('prestataire_id')) if data.get('prestataire_id') else None
     except (TypeError, ValueError):
         return jsonify({'error': 'invalid ids'}), 400

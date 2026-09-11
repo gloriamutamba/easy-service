@@ -356,16 +356,26 @@ function deactivateSiblings(el) {
 }
 
 function showClientSection(section, btn) {
+    if (section !== 'recherche') {
+        const user = getCurrentUserVerified();
+        if (!user) {
+            showAuthRequired('Connectez-vous pour accéder à vos demandes, messages et profil.');
+            return;
+        }
+        if (user.type !== 'client' && user.type !== 'admin') {
+            alert('Cette partie est réservée aux clients.');
+            return;
+        }
+    }
     const sections = document.querySelectorAll('.client-section');
     sections.forEach(s => s.classList.remove('active'));
     const id = 'section-' + section;
     const target = el(id);
     if (target) target.classList.add('active');
     if (btn) deactivateSiblings(btn);
-    // trigger renders when opening a section
     if (section === 'demandes') renderClientDemandes();
     if (section === 'messages') renderClientMessages();
-    if (section === 'profil') { /* potential profile render */ }
+    if (section === 'profil') fillClientProfil();
 }
 
 function showPrestataireSection(section, btn) {
@@ -518,6 +528,7 @@ async function initClient() {
             header.insertBefore(btn, header.firstChild);
         }
     }
+    applyClientAccessUi(user);
 
     await renderPrestataires();
 
@@ -547,6 +558,24 @@ async function initClient() {
         renderClientMessages();
         fillClientProfil();
         renderClientNotifications();
+    }
+}
+
+function applyClientAccessUi(user) {
+    const isClient = !!(user && (user.type === 'client' || user.type === 'admin'));
+    document.querySelectorAll('[data-auth="client"]').forEach(link => {
+        link.classList.toggle('nav-locked', !isClient);
+    });
+    const notif = document.querySelector('.notifications-bell');
+    if (notif) notif.classList.toggle('hidden', !isClient);
+    const logoutLink = document.querySelector('.sidebar-footer a[onclick*="logout"]');
+    if (logoutLink && !user) {
+        logoutLink.innerHTML = '<i class="fas fa-sign-in-alt"></i> Connexion';
+        logoutLink.onclick = ev => {
+            ev.preventDefault();
+            ensureAuthModals();
+            showModal('loginModal');
+        };
     }
 }
 

@@ -7969,18 +7969,31 @@ a.nav-brand {
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     padding: 18px;
+    min-width: 0;
 }
 
 .contact-card-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: #f1f5f9;
-    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: var(--primary);
+    display: flex;
     align-items: center;
     justify-content: center;
-    color: #0f172a;
     margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.contact-card-icon i {
+    display: block;
+    font-size: 16px;
+    line-height: 1;
+    width: 16px;
+    height: 16px;
+    text-align: center;
 }
 
 .contact-card h3 {
@@ -7989,11 +8002,12 @@ a.nav-brand {
 }
 
 .contact-card p,
-.contact-card span {
+.contact-card-value {
     display: block;
     font-size: 13px;
     color: #64748b;
     margin-bottom: 6px;
+    word-break: break-word;
 }
 
 .contact-card a {
@@ -8182,6 +8196,134 @@ footer {
 
 .footer-contact a:hover {
     color: #fff;
+}
+
+/* 3 couleurs boutons : bleu, vert, contour */
+.btn-solid,
+.btn-primary,
+.btn-submit,
+.btn-register,
+.assistant-send,
+.assistant-fab {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.btn-solid:hover,
+.btn-primary:hover,
+.btn-submit:hover,
+.btn-register:hover,
+.assistant-send:hover,
+.assistant-fab:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #fff;
+}
+
+.btn-ghost,
+.btn-small-outline,
+.btn-login {
+    background: #fff;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.btn-ghost:hover,
+.btn-small-outline:hover,
+.btn-login:hover {
+    background: #eff6ff;
+    color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-prestataire,
+.btn-small {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    color: #fff;
+}
+
+.btn-prestataire:hover,
+.btn-small:hover {
+    background: var(--secondary-dark);
+    border-color: var(--secondary-dark);
+    color: #fff;
+}
+
+.sidebar-nav a.nav-locked {
+    opacity: 0.55;
+}
+
+.sidebar-nav a.nav-locked::after {
+    content: "\f023";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-left: auto;
+    font-size: 12px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 18px;
+    font-size: 13px;
+}
+
+.breadcrumb a,
+.breadcrumb-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    line-height: 1;
+}
+
+.breadcrumb a {
+    color: #64748b;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--primary);
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+.breadcrumb-current {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.breadcrumb i {
+    font-size: 12px;
+    width: 14px;
+    text-align: center;
+    color: var(--primary);
+}
+
+.breadcrumb-sep {
+    color: #cbd5e1;
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.breadcrumb-sep i {
+    color: #cbd5e1;
+    font-size: 10px;
+}
+
+.breadcrumb-dash {
+    justify-content: flex-start;
+    margin-top: -12px;
+    margin-bottom: 20px;
 }
 
 @media (max-width: 900px) {
