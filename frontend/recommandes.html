@@ -17,25 +17,27 @@
             <i class="fas fa-hands-helping"></i>
             <span>Easy Services</span>
         </a>
-        <div class="nav-links">
-            <a href="index.html">Accueil</a>
-            <a href="recommandes.html" class="active">Recommandés</a>
-            <a href="index.html#categories">Catégories</a>
-            <a href="index.html#comment-ca-marche">Comment ça marche</a>
-            <a href="index.html#avis">Avis</a>
-            <a href="contact.html">Contact</a>
-        </div>
         <button class="nav-toggle" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('nav-open')"><i
                 class="fas fa-bars"></i></button>
-        <div class="nav-auth" id="navAuth">
-            <button class="btn-login" onclick="ensureAuthModals();showModal('loginModal')">Connexion</button>
-            <button class="btn-register" onclick="ensureAuthModals();showModal('registerModal')">Inscription</button>
-        </div>
-        <div class="nav-user hidden" id="navUser">
-            <span id="userNameDisplay"></span>
-            <button id="navAdminBtn" class="btn-admin hidden"
-                onclick="window.location.href='admin.html'">Administration</button>
-            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        <div class="nav-panel">
+            <div class="nav-links">
+                <a href="index.html">Accueil</a>
+                <a href="recommandes.html" class="active">Recommandés</a>
+                <a href="index.html#categories">Catégories</a>
+                <a href="index.html#comment-ca-marche">Comment ça marche</a>
+                <a href="index.html#avis">Avis</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="nav-auth" id="navAuth">
+                <button class="btn-login" onclick="document.body.classList.remove('nav-open');ensureAuthModals();showModal('loginModal')">Connexion</button>
+                <button class="btn-register" onclick="document.body.classList.remove('nav-open');ensureAuthModals();showModal('registerModal')">Inscription</button>
+            </div>
+            <div class="nav-user hidden" id="navUser">
+                <span id="userNameDisplay"></span>
+                <button id="navAdminBtn" class="btn-admin hidden"
+                    onclick="window.location.href='admin.html'">Administration</button>
+                <button class="btn-logout" onclick="logout()">Déconnexion</button>
+            </div>
         </div>
     </nav>
 
