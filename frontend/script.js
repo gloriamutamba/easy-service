@@ -77,6 +77,31 @@ function el(id) { return document.getElementById(id); }
 function showModal(id) { const e = el(id); if (e) e.classList.add('active'); }
 function closeModal(id) { const e = el(id); if (e) e.classList.remove('active'); if (id === 'chatModal' || id === 'prestaChatModal') stopChatPoll(); }
 function escapeHtml(str) { if (str === undefined || str === null) return ''; return String(str).replace(/[&<>'"]/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[s]); }
+function firstPhotoUrl(p) {
+    if (!p) return '';
+    const photos = p.photos || [];
+    if (photos.length && photos[0].url) return photos[0].url;
+    return p.photo_url || p.avatar || '';
+}
+function avatarHtml(name, photoUrl, extraClass) {
+    const initial = escapeHtml((name || '?').charAt(0).toUpperCase());
+    const cls = extraClass ? ('avatar ' + extraClass) : 'avatar';
+    if (photoUrl) {
+        return `<div class="${cls} avatar-photo"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(name || '')}"></div>`;
+    }
+    return `<div class="${cls}">${initial}</div>`;
+}
+function setAvatarEl(node, name, photoUrl) {
+    if (!node) return;
+    node.classList.add('avatar');
+    if (photoUrl) {
+        node.classList.add('avatar-photo');
+        node.innerHTML = `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(name || '')}">`;
+    } else {
+        node.classList.remove('avatar-photo');
+        node.textContent = (name || '?').charAt(0).toUpperCase();
+    }
+}
 function formatDate(d) { if (!d) return ''; try { return new Date(d).toLocaleDateString('fr-FR'); } catch (e) { return d; } }
 function formatDateTime(d) { if (!d) return ''; try { return new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return d; } }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -373,6 +398,8 @@ function showAdminSection(section, btn) {
 
 // Index page
 async function initIndex() {
+    bindAssistantComposer();
+    bindAvisStars();
     // show loading states
     const catsContainer = el('categoriesGrid');
     if (catsContainer) catsContainer.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Chargement...</p>';
@@ -429,31 +456,19 @@ async function initIndex() {
             }
         }
 
-        // top prestataires
+        // prestataires recommandés : note, avis, photo, métiers variés
         if (topGrid) {
-            const top = prestas.slice(0, 6);
+            const top = pickRecommendedPrestataires(prestas, 6);
             if (!top.length) {
                 topGrid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Aucun prestataire mis en avant pour le moment.</p>';
             } else {
-                const ranks = ['gold', 'silver', 'bronze'];
-                topGrid.innerHTML = top.map((p, i) => {
-                    const pid = p.id || '';
-                    const uid = p.userId || p.user_id || '';
-                    const nom = p.nom || p.name || '';
-                    return `<div class="top-presta-card">
-                        <div class="top-rank ${ranks[i] || 'other'}">${i + 1}</div>
-                        <div class="avatar" style="margin:12px auto 8px;width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">${escapeHtml((nom || '?').charAt(0))}</div>
-                        <h3>${escapeHtml(nom)}</h3>
-                        <span style="color:var(--primary);font-weight:500;">${escapeHtml(p.metier || p.category || '')}</span>
-                        <p style="color:var(--gray);font-size:14px;margin:10px 0 16px;">${escapeHtml((p.description || '').slice(0, 120))}</p>
-                        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-                            <button type="button" class="btn-small-outline" onclick="openChat('${uid}','${escapeHtml(nom)}')">Message</button>
-                            <button type="button" class="btn-small" onclick="showPrestataireProfile('${pid}')">Voir profil</button>
-                        </div>
-                    </div>`;
-                }).join('');
+                topGrid.innerHTML = top.map(recCardHtml).join('');
             }
         }
+        document.dispatchEvent(new CustomEvent('landing:ready'));
+        bindAssistantComposer();
+        bindAvisStars();
+        renderLandingAvis();
 
         // auth UI
         const user = getCurrentUserVerified();
@@ -471,6 +486,7 @@ async function initIndex() {
         console.error('InitIndex error', e);
         if (catsContainer) catsContainer.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Erreur lors du chargement. Réessayez.</p>';
         if (topGrid) topGrid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Erreur lors du chargement. Réessayez.</p>';
+        document.dispatchEvent(new CustomEvent('landing:ready'));
     }
 }
 
@@ -537,13 +553,72 @@ async function initClient() {
     }
 }
 
+function pickRecommendedPrestataires(prestas, limit) {
+    const scored = (prestas || []).map(p => {
+        const note = Number(p.note) || 0;
+        const avis = Number(p.avis_count) || 0;
+        const photoBonus = firstPhotoUrl(p) ? 8 : 0;
+        return { p, score: note * 12 + avis * 2 + photoBonus };
+    }).sort((a, b) => b.score - a.score);
+
+    const picked = [];
+    const usedMetier = new Set();
+    scored.forEach(item => {
+        const metier = (item.p.metier || '').toLowerCase();
+        if (metier && usedMetier.has(metier)) return;
+        picked.push(item.p);
+        if (metier) usedMetier.add(metier);
+    });
+    scored.forEach(item => {
+        if (picked.length >= limit) return;
+        if (!picked.includes(item.p)) picked.push(item.p);
+    });
+    return picked.slice(0, limit);
+}
+
+function recCardHtml(p) {
+    const pid = p.id || '';
+    const uid = p.userId || p.user_id || '';
+    const nom = p.nom || p.name || '';
+    const photo = firstPhotoUrl(p);
+    const metier = p.metier || p.category || '';
+    const ville = p.ville || p.zone_intervention || '';
+    const note = Number(p.note) || 0;
+    const avis = Number(p.avis_count) || 0;
+    const desc = (p.description || '').trim().slice(0, 110);
+    const cover = photo
+        ? `<div class="rec-card-cover"><img src="${escapeHtml(photo)}" alt=""></div>`
+        : `<div class="rec-card-cover rec-card-cover-muted" aria-hidden="true"><i class="fas fa-briefcase"></i></div>`;
+    const rating = note
+        ? `<span><i class="fas fa-star"></i> ${note.toFixed(1)}${avis ? ` <em>(${avis})</em>` : ''}</span>`
+        : '';
+
+    return `<article class="rec-card">
+        ${cover}
+        <div class="rec-card-body">
+            ${avatarHtml(nom, photo, 'rec-card-avatar')}
+            <h3>${escapeHtml(nom)}</h3>
+            ${metier ? `<span class="rec-badge">${escapeHtml(metier)}</span>` : ''}
+            <div class="rec-meta">
+                ${ville ? `<span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(ville)}</span>` : ''}
+                ${rating}
+            </div>
+            ${desc ? `<p class="rec-desc">${escapeHtml(desc)}</p>` : ''}
+        </div>
+        <div class="rec-card-footer">
+            <button type="button" class="btn-ghost" onclick="openChat('${uid}','${escapeHtml(nom)}')">Message</button>
+            <button type="button" class="btn-solid" onclick="showPrestataireProfile('${pid}')">Voir profil</button>
+        </div>
+    </article>`;
+}
+
 function prestaCardHtml(p) {
     const uid = p.userId || p.user_id || '';
     const nom = p.nom || p.name || '';
     const photos = (p.photos || []).slice(0, 3).map(ph => `<img src="${ph.url}" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:6px;margin-right:6px">`).join('');
     return `<div class="presta-card">
         <div class="presta-card-header">
-            <div class="avatar">${escapeHtml((nom || '?').charAt(0))}</div>
+            ${avatarHtml(nom, firstPhotoUrl(p))}
             <div class="presta-card-info">
                 <h3>${escapeHtml(nom)}</h3>
                 <div class="metier">${escapeHtml(p.metier || '')}</div>
@@ -608,18 +683,34 @@ async function showPrestataireProfile(prestaId) {
         if (box) box.innerHTML = '<p style="padding:24px;">Prestataire introuvable.</p>';
         return;
     }
+    if (!p.photos) {
+        try {
+            const ph = await fetch(apiBase() + '/prestataire/' + encodeURIComponent(prestaId) + '/photos');
+            p.photos = await ph.json().catch(() => []);
+        } catch (e) { p.photos = []; }
+    }
     const uid = p.userId || p.user_id || '';
     const nom = p.nom || p.name || '';
+    const extraPhotos = (p.photos || []).slice(1, 4).map(ph => `<img src="${escapeHtml(ph.url)}" alt="">`).join('');
     box.innerHTML = `
-        <h2>${escapeHtml(nom)}</h2>
-        <p style="color:var(--primary);font-weight:600;margin-bottom:8px;">${escapeHtml(p.metier || '')} — ${escapeHtml(p.ville || '')}</p>
-        <p style="color:var(--gray);margin-bottom:16px;">${escapeHtml(p.description || 'Aucune description.')}</p>
-        <p><strong>Tarif :</strong> ${p.tarif ? escapeHtml(String(p.tarif)) + ' $ / h' : 'Non renseigné'}</p>
-        <p><strong>Note :</strong> ${p.note ? escapeHtml(String(p.note)) + '/5' : '—'}</p>
-        <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;">
-            <button type="button" class="btn-small-outline" onclick="closeModal('prestataireModal');openChat('${uid}','${escapeHtml(nom)}')">Message</button>
-            <button type="button" class="btn-small" onclick="closeModal('prestataireModal');openDemandeModal('${p.id}','${escapeHtml(nom)}')">Demander un devis</button>
-        </div>`;
+      <div class="presta-detail">
+        <div class="presta-detail-left">
+            ${avatarHtml(nom, firstPhotoUrl(p), 'avatar-profile')}
+            <div class="stars">${p.note ? '★★★★★' : ''}</div>
+            <div class="note-text">${p.note ? escapeHtml(String(p.note)) + '/5' : 'Pas encore de note'}</div>
+        </div>
+        <div class="presta-detail-right">
+            <h2>${escapeHtml(nom)}</h2>
+            <span class="metier">${escapeHtml(p.metier || '')} — ${escapeHtml(p.ville || '')}</span>
+            <p class="presta-description">${escapeHtml(p.description || 'Aucune description.')}</p>
+            <p><strong>Tarif :</strong> ${p.tarif ? escapeHtml(String(p.tarif)) + ' $ / h' : 'Non renseigné'}</p>
+            ${extraPhotos ? `<div class="presta-photos">${extraPhotos}</div>` : ''}
+            <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;">
+                <button type="button" class="btn-small-outline" onclick="closeModal('prestataireModal');openChat('${uid}','${escapeHtml(nom)}')">Message</button>
+                <button type="button" class="btn-small" onclick="closeModal('prestataireModal');openDemandeModal('${p.id}','${escapeHtml(nom)}')">Demander un devis</button>
+            </div>
+        </div>
+      </div>`;
 }
 
 function statusLabel(status) {
@@ -873,6 +964,7 @@ async function listPrestaServerPhotos() {
             const id = me.body.id;
             const res = await fetch(apiBase() + `/prestataire/${id}/photos`);
             const photos = await res.json().catch(() => []);
+            setAvatarEl(el('prestaAvatar'), (me.body.nom || user.name || 'P'), (photos && photos[0] && photos[0].url) || '');
             const container = el('prestaPhotoServerList'); if (!container) return; if (!Array.isArray(photos) || !photos.length) { container.innerHTML = '<p style="color:var(--gray)">Aucune photo.</p>'; return; }
             container.innerHTML = photos.map(p => `<div style="display:inline-block;margin-right:8px;text-align:center"><img src="${p.url}" style="width:120px;height:80px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px"/><button class="btn-small-outline" onclick="deletePrestaPhoto(${p.id})">Supprimer</button></div>`).join('');
         }
@@ -973,15 +1065,14 @@ function filterPrestataires() {
                 const all = DB.get('prestataires') || [];
                 const list = all.filter(p => p.active !== false && (!metier || (p.metier || '').toLowerCase().includes(metier.toLowerCase())) && (!ville || ((p.ville || '') + ',' + (p.zone_intervention || '')).toLowerCase().includes(ville.toLowerCase())));
                 if (!list.length) { grid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Aucun prestataire trouvé pour cette recherche.</p>'; return; }
-                grid.innerHTML = list.map(p => `<div class="presta-card"><div class="avatar">${escapeHtml((p.nom || '').charAt(0))}</div><div class="presta-info"><h3>${escapeHtml(p.nom)}</h3><span>${escapeHtml(p.metier)}</span><p>${escapeHtml(p.description || '')}</p></div><div class="presta-actions"><button onclick="openChat('${p.userId}','${escapeHtml(p.nom)}')">Message</button><button onclick="openDemandeModal('${p.id}','${escapeHtml(p.nom)}')">Demander un devis</button></div></div>`).join('');
+                grid.innerHTML = list.map(prestaCardHtml).join('');
             }
         }).catch(err => {
             console.error('Search error', err);
-            // fallback to client DB
             const all = DB.get('prestataires') || [];
             const list = all.filter(p => p.active !== false && (!metier || (p.metier || '').toLowerCase().includes(metier.toLowerCase())) && (!ville || ((p.ville || '') + ',' + (p.zone_intervention || '')).toLowerCase().includes(ville.toLowerCase())));
             if (!list.length) { grid.innerHTML = '<p style="text-align:center;color:var(--gray);padding:40px;">Aucun prestataire trouvé pour cette recherche.</p>'; return; }
-            grid.innerHTML = list.map(p => `<div class="presta-card"><div class="avatar">${escapeHtml((p.nom || '').charAt(0))}</div><div class="presta-info"><h3>${escapeHtml(p.nom)}</h3><span>${escapeHtml(p.metier)}</span><p>${escapeHtml(p.description || '')}</p></div><div class="presta-actions"><button onclick="openChat('${p.userId}','${escapeHtml(p.nom)}')">Message</button><button onclick="openDemandeModal('${p.id}','${escapeHtml(p.nom)}')">Demander un devis</button></div></div>`).join('');
+            grid.innerHTML = list.map(prestaCardHtml).join('');
         });
 }
 
@@ -1024,35 +1115,186 @@ function clientAnalyzeProblem() {
     }
 }
 
-function fillAssistant(text) {
-    const ta = el('assistantInput'); if (!ta) return; ta.value = text || '';
+function toggleAssistant(open) {
+    const widget = el('assistantWidget');
+    const fab = el('assistantFab');
+    if (!widget) return;
+    const shouldOpen = open !== false && (open === true || !widget.classList.contains('open'));
+    widget.classList.toggle('open', shouldOpen);
+    widget.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+    if (fab) {
+        fab.classList.toggle('is-hidden', shouldOpen);
+        fab.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    }
+    if (shouldOpen) {
+        const ta = el('assistantInput');
+        if (ta) ta.focus();
+    }
 }
 
-function analyzeProblem() {
-    const ta = el('assistantInput'); if (!ta) return;
+function bindAssistantComposer() {
+    const ta = el('assistantInput');
+    if (!ta || ta.dataset.bound) return;
+    ta.dataset.bound = '1';
+    ta.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' && !ev.shiftKey) {
+            ev.preventDefault();
+            analyzeProblem(ev);
+        }
+    });
+}
+
+function appendAssistantBubble(role, html) {
+    const thread = el('assistantThread');
+    if (!thread) return null;
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-' + role;
+    bubble.innerHTML = html;
+    thread.appendChild(bubble);
+    thread.scrollTop = thread.scrollHeight;
+    return bubble;
+}
+
+function fillAssistant(text) {
+    toggleAssistant(true);
+    const ta = el('assistantInput');
+    if (ta) ta.value = text || '';
+    analyzeProblem();
+}
+
+function analyzeProblem(e) {
+    if (e) e.preventDefault();
+    const ta = el('assistantInput');
+    if (!ta) return;
     const text = ta.value.trim();
-    if (!text) { alert('Décrivez votre problème.'); return; }
-    const box = el('assistantResult');
-    const rec = el('assistantRecommendation');
-    if (box) box.classList.remove('hidden');
-    const thinking = box ? box.querySelector('.assistant-thinking') : null;
-    if (thinking) thinking.classList.remove('hidden');
-    if (rec) { rec.classList.add('hidden'); rec.innerHTML = ''; }
+    if (!text) return;
+    toggleAssistant(true);
+    appendAssistantBubble('user', escapeHtml(text));
+    ta.value = '';
+    const thinking = appendAssistantBubble('bot', '<i class="fas fa-spinner fa-spin"></i> Analyse en cours…');
     setTimeout(() => {
-        if (thinking) thinking.classList.add('hidden');
+        if (thinking) thinking.remove();
         const m = detectService(text);
-        if (rec) rec.classList.remove('hidden');
         if (m) {
-            if (rec) rec.innerHTML = `
-                <h4>Service recommandé : ${escapeHtml(m)}</h4>
-                <p>Nous avons identifié un besoin de <strong>${escapeHtml(m)}</strong>.</p>
-                <div style="margin-top:16px;">
-                    <a class="btn-primary" href="client.html?cat=${encodeURIComponent(m)}">Voir les ${escapeHtml(m)}s disponibles</a>
-                </div>`;
-        } else if (rec) {
-            rec.innerHTML = '<p style="color:var(--gray)">Aucune correspondance trouvée. Essayez d\'être plus précis (fuite, électricité, voiture, cheveux...).</p>';
+            appendAssistantBubble('bot', `
+                <strong>Service recommandé : ${escapeHtml(m)}</strong>
+                <p>On a identifié un besoin de <b>${escapeHtml(m)}</b>. Voyez qui est disponible près de chez vous.</p>
+                <a class="chat-cta" href="client.html?cat=${encodeURIComponent(m)}">Voir les ${escapeHtml(m)}s</a>`);
+        } else {
+            appendAssistantBubble('bot', 'Aucune correspondance pour l’instant. Précisez un peu (fuite, électricité, voiture, cheveux…).');
         }
     }, 400);
+}
+
+function starsDisplay(note) {
+    const n = Math.max(0, Math.min(5, Math.round(Number(note) || 0)));
+    return `<span class="stars" aria-label="${n} sur 5">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`;
+}
+
+function avisCardHtml(a) {
+    const nom = a.nom || 'Visiteur';
+    const initial = escapeHtml(nom.charAt(0).toUpperCase());
+    return `<article class="avis-card">
+        <div class="avis-card-top">
+            ${starsDisplay(a.note)}
+            <time>${escapeHtml(formatDate(a.created_at))}</time>
+        </div>
+        <p>${escapeHtml(a.commentaire || '')}</p>
+        <div class="avis-card-author">
+            <div class="avatar">${initial}</div>
+            <div>
+                <strong>${escapeHtml(nom)}</strong>
+                <span>${escapeHtml(a.role || 'Visiteur')}</span>
+            </div>
+        </div>
+    </article>`;
+}
+
+function bindAvisStars() {
+    const picker = el('avisStars');
+    if (!picker || picker.dataset.bound) return;
+    picker.dataset.bound = '1';
+    picker.addEventListener('click', ev => {
+        const btn = ev.target.closest('button[data-note]');
+        if (!btn) return;
+        const note = btn.getAttribute('data-note');
+        if (el('avisNote')) el('avisNote').value = note;
+        picker.querySelectorAll('button').forEach(b => {
+            b.classList.toggle('active', Number(b.getAttribute('data-note')) <= Number(note));
+        });
+    });
+    const user = getCurrentUserVerified();
+    if (user) {
+        if (el('avisNom')) el('avisNom').value = user.name || user.nom || '';
+        const group = el('avisNomGroup');
+        if (group && (user.name || user.nom)) group.classList.add('hidden');
+    }
+}
+
+async function renderLandingAvis() {
+    const list = el('avisList');
+    if (!list) return;
+    try {
+        const res = await apiFetch('/avis', { method: 'GET' });
+        if (res && res.status === 200 && Array.isArray(res.body) && res.body.length) {
+            list.innerHTML = res.body.map(avisCardHtml).join('');
+            document.dispatchEvent(new CustomEvent('landing:avis'));
+            return;
+        }
+    } catch (e) { console.error(e); }
+    const local = DB.get('avis') || [];
+    if (local.length) {
+        list.innerHTML = local.map(avisCardHtml).join('');
+        return;
+    }
+    list.innerHTML = '<p style="text-align:center;color:var(--gray);padding:24px;">Aucun avis pour le moment. Soyez le premier à noter.</p>';
+}
+
+async function submitAvis(e) {
+    if (e) e.preventDefault();
+    const err = el('avisFormError');
+    if (err) { err.classList.add('hidden'); err.textContent = ''; }
+    const note = Number((el('avisNote') || {}).value || 0);
+    const commentaire = ((el('avisCommentaire') || {}).value || '').trim();
+    const user = getCurrentUserVerified();
+    const nom = ((el('avisNom') || {}).value || '').trim() || (user && (user.name || user.nom)) || '';
+    if (note < 1 || note > 5) {
+        if (err) { err.textContent = 'Choisissez une note entre 1 et 5 étoiles.'; err.classList.remove('hidden'); }
+        return;
+    }
+    if (commentaire.length < 8) {
+        if (err) { err.textContent = 'Écrivez un commentaire d’au moins 8 caractères.'; err.classList.remove('hidden'); }
+        return;
+    }
+    if (!nom) {
+        if (err) { err.textContent = 'Indiquez votre nom.'; err.classList.remove('hidden'); }
+        return;
+    }
+    try {
+        const res = await apiFetch('/avis', {
+            method: 'POST',
+            body: JSON.stringify({
+                nom,
+                note,
+                commentaire,
+                role: user ? (user.type || 'client') : 'Visiteur'
+            })
+        });
+        if (res && (res.status === 201 || res.status === 200) && res.body && res.body.id) {
+            if (el('avisCommentaire')) el('avisCommentaire').value = '';
+            if (el('avisNote')) el('avisNote').value = '0';
+            document.querySelectorAll('#avisStars button').forEach(b => b.classList.remove('active'));
+            renderLandingAvis();
+            return;
+        }
+        if (err) {
+            err.textContent = (res && res.body && res.body.error) || 'Impossible de publier l’avis.';
+            err.classList.remove('hidden');
+        }
+    } catch (ex) {
+        console.error(ex);
+        if (err) { err.textContent = 'Erreur réseau.'; err.classList.remove('hidden'); }
+    }
 }
 
 function openDemandeModal(prestaId, prestaNom) {
@@ -1328,9 +1570,20 @@ async function deleteCategory(id) {
         alert((res && res.body && res.body.error) || 'Suppression impossible.');
     } catch (e) { console.error(e); alert('Erreur réseau.'); }
 }
-function renderAdminAvis() {
+async function renderAdminAvis() {
     const container = el('adminAvisList');
     if (!container) return;
+    try {
+        const res = await apiFetch('/avis', { method: 'GET' });
+        if (res && res.status === 200 && Array.isArray(res.body)) {
+            if (!res.body.length) {
+                container.innerHTML = '<p style="color:var(--gray);padding:24px;">Aucun avis à modérer pour le moment.</p>';
+                return;
+            }
+            container.innerHTML = res.body.map(a => `<div class="avis-item"><strong>${escapeHtml(String(a.note || ''))}/5</strong> — ${escapeHtml(a.nom || '')} : ${escapeHtml(a.commentaire || '')}</div>`).join('');
+            return;
+        }
+    } catch (e) { console.error(e); }
     const avis = DB.get('avis') || [];
     if (!avis.length) {
         container.innerHTML = '<p style="color:var(--gray);padding:24px;">Aucun avis à modérer pour le moment.</p>';

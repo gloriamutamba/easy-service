@@ -7,6 +7,7 @@ from models.message import Message
 from models.category import Category
 from models.photo import Photo
 from models.token import TokenBlocklist
+from models.avis import Avis
 
 __all__ = [
     'User',
@@ -18,4 +19,5 @@ __all__ = [
     'Category',
     'Photo',
     'TokenBlocklist',
+    'Avis',
 ]

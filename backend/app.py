@@ -10,7 +10,7 @@ try:
     from extensions import db, jwt
     from models import (
         User, Client, Prestataire, Demande, Devis, Message,
-        Category, Photo, TokenBlocklist,
+        Category, Photo, TokenBlocklist, Avis,
     )
 except Exception as e:
     print('Missing Python packages. Please install requirements from backend/requirements.txt')
@@ -19,7 +19,7 @@ except Exception as e:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'easyservices.db')
 
-FRONT_DIR = os.path.join(BASE_DIR, '..', 'front')
+FRONT_DIR = os.path.join(BASE_DIR, '..', 'frontend')
 app = Flask(__name__, static_folder=FRONT_DIR, static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -197,12 +197,29 @@ def client_me():
     db.session.commit()
     return jsonify({'ok': True})
 
+def photos_for_presta(presta_id):
+    photos = Photo.query.filter_by(prestataire_id=presta_id).order_by(Photo.created_at.desc()).all()
+    return [{'id': ph.id, 'url': f'/uploads/{ph.filename}'} for ph in photos]
+
+
 @app.route('/api/prestataires')
 def list_prestataires():
     prestas = Prestataire.query.filter_by(active=True).all()
     out = []
     for p in prestas:
-        out.append({'id': p.id, 'user_id': p.user_id, 'nom': p.nom, 'metier': p.metier, 'ville': p.ville, 'tarif': p.tarif, 'description': p.description, 'note': p.note, 'active': p.active})
+        out.append({
+            'id': p.id,
+            'user_id': p.user_id,
+            'nom': p.nom,
+            'metier': p.metier,
+            'ville': p.ville,
+            'tarif': p.tarif,
+            'description': p.description,
+            'note': p.note,
+            'avis_count': p.avis_count or 0,
+            'active': p.active,
+            'photos': photos_for_presta(p.id)
+        })
     return jsonify(out)
 
 @app.route('/api/clients')
@@ -537,7 +554,8 @@ def prestataire_me():
             'horaires': presta.horaires or '',
             'zone_intervention': presta.zone_intervention or '',
             'email': user.email if user else '',
-            'phone': getattr(presta, 'phone', '') or ''
+            'phone': getattr(presta, 'phone', '') or '',
+            'photos': photos_for_presta(presta.id)
         })
     data = request.get_json() or {}
     presta.nom = data.get('nom', presta.nom)
@@ -589,7 +607,7 @@ def api_search():
             # include photos
             photos = Photo.query.filter_by(prestataire_id=p.id).order_by(Photo.created_at.desc()).all()
             photos_out = [{'id':ph.id, 'url': f'/uploads/{ph.filename}'} for ph in photos]
-            results.append({'id':p.id, 'user_id':p.user_id, 'nom':p.nom, 'metier':p.metier, 'ville':p.ville, 'zone_intervention': getattr(p,'zone_intervention',None), 'tarif':p.tarif, 'description':p.description, 'note':p.note, 'photos': photos_out})
+            results.append({'id':p.id, 'user_id':p.user_id, 'nom':p.nom, 'metier':p.metier, 'ville':p.ville, 'zone_intervention': getattr(p,'zone_intervention',None), 'tarif':p.tarif, 'description':p.description, 'note':p.note, 'avis_count': p.avis_count or 0, 'photos': photos_out})
     return jsonify(results)
 
 
@@ -668,6 +686,82 @@ def index_root():
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_DIR, filename)
 
+
+@app.route('/assets/<path:filename>')
+def front_assets(filename):
+    front_assets_dir = os.path.join(FRONT_DIR, 'assets')
+    root_assets_dir = os.path.join(BASE_DIR, '..', 'assets')
+    front_path = os.path.join(front_assets_dir, filename)
+    if os.path.isfile(front_path):
+        return send_from_directory(front_assets_dir, filename)
+    return send_from_directory(root_assets_dir, filename)
+
+def avis_to_dict(a):
+    return {
+        'id': a.id,
+        'nom': a.nom,
+        'role': a.role or 'Visiteur',
+        'note': a.note,
+        'commentaire': a.commentaire,
+        'created_at': a.created_at.isoformat() if a.created_at else None,
+    }
+
+
+@app.route('/api/avis', methods=['GET', 'POST'])
+def api_avis():
+    if request.method == 'GET':
+        rows = Avis.query.order_by(Avis.created_at.desc()).limit(40).all()
+        return jsonify([avis_to_dict(a) for a in rows])
+
+    data = request.get_json() or {}
+    try:
+        note = int(data.get('note') or 0)
+    except (TypeError, ValueError):
+        note = 0
+    commentaire = (data.get('commentaire') or '').strip()
+    nom = (data.get('nom') or '').strip()
+    role = (data.get('role') or '').strip()
+    user = None
+    try:
+        from flask_jwt_extended import verify_jwt_in_request
+        verify_jwt_in_request(optional=True)
+        uid = get_jwt_identity()
+        if uid:
+            user = User.query.get(uid)
+    except Exception:
+        user = None
+    if user:
+        nom = nom or user.name or user.email
+        role = role or (user.type or 'client').capitalize()
+    if not nom:
+        return jsonify({'error': 'Indiquez votre nom.'}), 400
+    if note < 1 or note > 5:
+        return jsonify({'error': 'Choisissez une note entre 1 et 5.'}), 400
+    if len(commentaire) < 8:
+        return jsonify({'error': 'Écrivez un commentaire d’au moins 8 caractères.'}), 400
+    avis = Avis(
+        user_id=user.id if user else None,
+        nom=nom[:80],
+        role=(role or 'Visiteur')[:32],
+        note=note,
+        commentaire=commentaire[:800],
+    )
+    db.session.add(avis)
+    db.session.commit()
+    return jsonify(avis_to_dict(avis)), 201
+
+
+def seed_avis_if_empty():
+    if Avis.query.first():
+        return
+    db.session.add_all([
+        Avis(nom='Marie K.', role='Client', note=5, commentaire="J'ai trouvé un plombier en 10 minutes grâce au mode urgence. Le travail était impeccable !"),
+        Avis(nom='Jean P.', role='Prestataire', note=5, commentaire="Grâce à Easy Services, j'ai doublé mon nombre de clients. L'assistant est vraiment utile."),
+        Avis(nom='Alice M.', role='Client', note=5, commentaire="Mon ordinateur était en panne, un informaticien est venu le jour même. Service au top !"),
+    ])
+    db.session.commit()
+
+
 # DB init
 def ensure_prestataire_columns():
     try:
@@ -685,6 +779,7 @@ with app.app_context():
     db.create_all()
     ensure_prestataire_columns()
     seed_demo()
+    seed_avis_if_empty()
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
