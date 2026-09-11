@@ -14,163 +14,160 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-brand">
+        <a class="nav-brand" href="index.html">
             <i class="fas fa-hands-helping"></i>
             <span>Easy Services</span>
-        </div>
-        <div class="nav-links">
-            <a href="index.html" class="active">Accueil</a>
-            <a href="#categories">Catégories</a>
-            <a href="#comment-ca-marche">Comment ça marche</a>
-            <a href="#contact">Contact</a>
-        </div>
+        </a>
         <button class="nav-toggle" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('nav-open')"><i
                 class="fas fa-bars"></i></button>
-        <div class="nav-auth" id="navAuth">
-            <button class="btn-login" onclick="showModal('loginModal')">Connexion</button>
-            <button class="btn-register" onclick="showModal('registerModal')">Inscription</button>
-        </div>
-        <div class="nav-user hidden" id="navUser">
-            <span id="userNameDisplay"></span>
-            <button id="navAdminBtn" class="btn-admin hidden"
-                onclick="window.location.href='admin.html'">Administration</button>
-            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        <div class="nav-panel">
+            <div class="nav-links">
+                <a href="#accueil" data-section="accueil" class="active">Accueil</a>
+                <a href="recommandes.html">Recommandés</a>
+                <a href="#categories" data-section="categories">Catégories</a>
+                <a href="#comment-ca-marche" data-section="comment-ca-marche">Comment ça marche</a>
+                <a href="#avis" data-section="avis">Avis</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="nav-auth" id="navAuth">
+                <button class="btn-login" onclick="document.body.classList.remove('nav-open');showModal('loginModal')">Connexion</button>
+                <button class="btn-register" onclick="document.body.classList.remove('nav-open');showModal('registerModal')">Inscription</button>
+            </div>
+            <div class="nav-user hidden" id="navUser">
+                <span id="userNameDisplay"></span>
+                <button id="navAdminBtn" class="btn-admin hidden"
+                    onclick="window.location.href='admin.html'">Administration</button>
+                <button class="btn-logout" onclick="logout()">Déconnexion</button>
+            </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Trouvez le bon prestataire,<br><span class="highlight">au bon moment.</span></h1>
-            <p>Plombiers, électriciens, mécaniciens, informaticiens, coiffeurs, couturiers...<br>Tous les
-                métiers à portée de clic.</p>
+    <section class="hero" id="accueil">
+        <div class="hero-top">
+            <div class="hero-content">
+                <p class="hero-kicker">Plateforme de mise en relation</p>
+                <h1>Un besoin d’un côté.<br><span class="highlight">Un pro de l’autre.</span></h1>
+                <p>Easy Services relie les habitants de Lushi, Lubumbashi et Kolwezi aux artisans
+                    disponibles près de chez eux — plombiers, électriciens, mécaniciens, couturiers…</p>
 
-            <div class="hero-buttons">
-                <a href="client.html" class="btn-client">
-                    <i class="fas fa-search"></i>
-                    <div>
-                        <strong>Je suis Client</strong>
-                        <span>Je recherche un prestataire</span>
-                    </div>
-                </a>
-                <a href="prestataire.html" class="btn-prestataire">
-                    <i class="fas fa-tools"></i>
-                    <div>
-                        <strong>Je suis Prestataire</strong>
-                        <span>Je propose mes services</span>
-                    </div>
-                </a>
+                <div class="hero-buttons">
+                    <a href="client.html" class="btn-client">
+                        <i class="fas fa-search"></i>
+                        <div>
+                            <strong>Je cherche un pro</strong>
+                            <span>Décrire mon besoin et recevoir un devis</span>
+                        </div>
+                    </a>
+                    <a href="prestataire.html" class="btn-prestataire">
+                        <i class="fas fa-handshake"></i>
+                        <div>
+                            <strong>Je propose mes services</strong>
+                            <span>Recevoir des demandes près de moi</span>
+                        </div>
+                    </a>
+                </div>
             </div>
-
-            <div class="hero-stats">
-                <div class="stat">
-                    <span class="stat-number" id="statPrestataires">0</span>
-                    <span class="stat-label">Prestataires</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="statClients">0</span>
-                    <span class="stat-label">Clients</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="statMissions">0</span>
-                    <span class="stat-label">Missions réalisées</span>
-                </div>
+            <div class="hero-visual">
+                <img src="assets/prestataires.jfif" alt="Mise en relation entre un client et un prestataire">
             </div>
         </div>
-        <div class="hero-image">
-            <div class="hero-card hero-card-1">
-                <i class="fas fa-star"></i>
-                <span>4.9/5</span>
-                <small>Note moyenne</small>
+        <div class="hero-stats">
+            <article class="hero-stat">
+                <div class="hero-stat-head">
+                    <span class="hero-stat-icon" aria-hidden="true"><i class="fas fa-hard-hat"></i></span>
+                    <span class="hero-stat-label">Prestataires</span>
+                </div>
+                <span class="hero-stat-value" id="statPrestataires">0</span>
+                <span class="hero-stat-hint">Pros disponibles près de vous</span>
+            </article>
+            <article class="hero-stat">
+                <div class="hero-stat-head">
+                    <span class="hero-stat-icon" aria-hidden="true"><i class="fas fa-users"></i></span>
+                    <span class="hero-stat-label">Clients</span>
+                </div>
+                <span class="hero-stat-value" id="statClients">0</span>
+                <span class="hero-stat-hint">Personnes déjà inscrites</span>
+            </article>
+            <article class="hero-stat">
+                <div class="hero-stat-head">
+                    <span class="hero-stat-icon" aria-hidden="true"><i class="fas fa-check"></i></span>
+                    <span class="hero-stat-label">Missions</span>
+                </div>
+                <span class="hero-stat-value" id="statMissions">0</span>
+                <span class="hero-stat-hint">Interventions réalisées</span>
+            </article>
+        </div>
+    </section>
+
+    <!-- Recherche urgente -->
+    <section class="urgent-finder reveal-section" id="urgence">
+        <div class="urgent-card">
+            <div class="urgent-copy">
+                <p class="section-eyebrow">Intervention rapide</p>
+                <h2>Trouver un pro tout de suite</h2>
+                <p>Choisissez le métier et la ville. La recherche s’ouvre en mode urgence, avec les prestataires disponibles maintenant.</p>
             </div>
-            <div class="hero-card hero-card-2">
-                <i class="fas fa-shield-alt"></i>
-                <span>100% Sécurisé</span>
-                <small>Paiement protégé</small>
+            <form class="urgent-form" onsubmit="goUrgentSearch(event)">
+                <select id="urgentMetier" required>
+                    <option value="">Quel métier ?</option>
+                    <option value="Plombier">Plombier</option>
+                    <option value="Électricien">Électricien</option>
+                    <option value="Serrurier">Serrurier</option>
+                    <option value="Mécanicien">Mécanicien</option>
+                    <option value="Informaticien">Informaticien</option>
+                </select>
+                <input type="text" id="urgentVille" placeholder="Ville (Lushi, Lubumbashi…)">
+                <button type="submit" class="btn-solid">Trouver maintenant</button>
+            </form>
+            <div class="urgent-chips">
+                <button type="button" onclick="goUrgentSearch(null, 'Plombier')">Fuite / plomberie</button>
+                <button type="button" onclick="goUrgentSearch(null, 'Électricien')">Coupure / électricité</button>
+                <button type="button" onclick="goUrgentSearch(null, 'Serrurier')">Porte / serrure</button>
+                <button type="button" onclick="goUrgentSearch(null, 'Mécanicien')">Panne auto</button>
             </div>
         </div>
     </section>
 
-    <!-- Bouton Urgence -->
-    <section class="urgence-section">
-        <div class="urgence-box" onclick="window.location.href='client.html?urgence=1'">
-            <div class="urgence-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="urgence-text">
-                <h3>Besoin urgent ?</h3>
-                <p>Trouvez immédiatement un prestataire disponible près de chez vous.</p>
-            </div>
-            <button class="btn-urgence">Trouver maintenant <i class="fas fa-arrow-right"></i></button>
+    <!-- Teaser recommandés -->
+    <section class="rec-teaser reveal-section" id="top-prestataires">
+        <div class="section-heading">
+            <p class="section-eyebrow">01 — Réseau</p>
+            <h2>Quelques prestataires mis en avant</h2>
+            <p>Un aperçu. La liste complète est sur la page Recommandés.</p>
         </div>
-    </section>
-
-    <!-- Assistant Intelligent -->
-    <section class="assistant-section" id="assistant">
-        <div class="assistant-container">
-            <div class="assistant-left">
-                <h2><i class="fas fa-robot"></i> Easy Assistant</h2>
-                <p>Décrivez votre problème, notre assistant intelligent vous recommande le bon service.</p>
-                <div class="assistant-examples">
-                    <span class="example-tag" onclick="fillAssistant('Ma douche fuit depuis hier')">"Ma
-                        douche fuit"</span>
-                    <span class="example-tag" onclick="fillAssistant('Mon ordinateur ne s\'allume plus')">"Mon PC ne
-                        s'allume
-                        plus"</span>
-                    <span class="example-tag"
-                        onclick="fillAssistant('J\'ai besoin d\'une nouvelle coupe de cheveux')">"Nouvelle
-                        coupe de cheveux"</span>
-                    <span class="example-tag"
-                        onclick="fillAssistant('Ma voiture fait un bruit bizarre au démarrage')">"Bruit
-                        bizarre au démarrage"</span>
-                </div>
-            </div>
-            <div class="assistant-right">
-                <div class="assistant-input-box">
-                    <textarea id="assistantInput"
-                        placeholder="Décrivez votre problème ici... Ex: J'ai une fuite sous mon évier de cuisine"></textarea>
-                    <button class="btn-assistant" onclick="analyzeProblem()">
-                        <i class="fas fa-magic"></i> Analyser mon besoin
-                    </button>
-                </div>
-                <div class="assistant-result hidden" id="assistantResult">
-                    <div class="assistant-thinking">
-                        <i class="fas fa-spinner fa-spin"></i> Easy Assistant analyse votre problème...
-                    </div>
-                    <div class="assistant-recommendation hidden" id="assistantRecommendation"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Top Prestataires -->
-    <section class="top-prestataires" id="top-prestataires">
-        <h2>🏆 Top Prestataires du mois</h2>
-        <p>Les professionnels les mieux notés par nos clients.</p>
-        <div class="top-presta-grid" id="topPrestatairesGrid">
-            <!-- Généré par JS -->
-        </div>
-        <div style="text-align:center;margin-top:24px;">
-            <a href="client.html" class="btn-primary">Voir tous les prestataires</a>
+        <div class="rec-grid rec-grid-preview" id="topPrestatairesGrid"></div>
+        <div class="cta-pair">
+            <a href="recommandes.html" class="btn-solid">Voir les recommandés</a>
+            <a href="client.html" class="btn-ghost">Parcourir tous les prestataires</a>
         </div>
     </section>
 
     <!-- Catégories -->
-    <section class="categories" id="categories">
-        <h2>Nos catégories de services</h2>
-        <p>Choisissez votre métier et trouvez le meilleur prestataire près de chez vous.</p>
+    <section class="categories reveal-section" id="categories">
+        <div class="section-heading">
+            <p class="section-eyebrow">02 — Métiers</p>
+            <h2>Nos catégories de services</h2>
+            <p>Choisissez un métier pour voir qui intervient dans votre quartier.</p>
+        </div>
         <div class="categories-grid" id="categoriesGrid">
             <!-- Généré par JS -->
         </div>
     </section>
 
     <!-- Comment ça marche -->
-    <section class="how-it-works" id="comment-ca-marche">
-        <h2>Comment ça marche ?</h2>
+    <section class="how-it-works reveal-section" id="comment-ca-marche">
+        <div class="section-heading">
+            <p class="section-eyebrow">03 — Parcours</p>
+            <h2>Comment ça marche ?</h2>
+            <p>Trois étapes pour passer du besoin à l’intervention.</p>
+        </div>
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
                 <i class="fas fa-search"></i>
                 <h3>Recherchez</h3>
-                <p>Utilisez l'assistant intelligent ou choisissez une catégorie.</p>
+                <p>Choisissez un métier ou décrivez votre besoin, puis voyez qui est disponible près de chez vous.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
@@ -187,51 +184,47 @@
         </div>
     </section>
 
-    <!-- Témoignages -->
-    <section class="testimonials">
-        <h2>Ils nous font confiance</h2>
-        <div class="testimonials-grid">
-            <div class="testimonial">
-                <div class="stars">★★★★★</div>
-                <p>"J'ai trouvé un plombier en 10 minutes grâce au mode urgence. Le travail était impeccable
-                    !"</p>
-                <div class="testimonial-author">
-                    <div class="avatar">MK</div>
-                    <div>
-                        <strong>Marie K.</strong>
-                        <span>Client — Lubumbashi</span>
-                    </div>
-                </div>
+    <!-- Avis -->
+    <section class="avis-section reveal-section" id="avis">
+        <div class="section-heading">
+            <p class="section-eyebrow">04 — Avis</p>
+            <h2>Notes et commentaires</h2>
+            <p>Lisez les retours, puis laissez la vôtre — une note et un commentaire écrit.</p>
+        </div>
+        <div class="avis-layout">
+            <div class="avis-list" id="avisList">
+                <p style="text-align:center;color:var(--gray);padding:24px;">Chargement des avis...</p>
             </div>
-            <div class="testimonial">
-                <div class="stars">★★★★★</div>
-                <p>"Grâce à Easy Services, j'ai doublé mon nombre de clients. L'assistant intelligent est
-                    génial."</p>
-                <div class="testimonial-author">
-                    <div class="avatar">JP</div>
-                    <div>
-                        <strong>Jean P.</strong>
-                        <span>Électricien — Lushi</span>
-                    </div>
+            <form class="avis-form" id="avisForm" onsubmit="submitAvis(event)">
+                <h3>Laisser un avis</h3>
+                <p class="avis-form-hint">Notez la plateforme et écrivez ce que vous avez vécu.</p>
+                <div class="form-group" id="avisNomGroup">
+                    <label for="avisNom">Votre nom</label>
+                    <input type="text" id="avisNom" maxlength="80" placeholder="Ex. Alice M.">
                 </div>
-            </div>
-            <div class="testimonial">
-                <div class="stars">★★★★★</div>
-                <p>"Mon ordinateur était en panne, un informaticien est venu le jour même. Service au top !"
-                </p>
-                <div class="testimonial-author">
-                    <div class="avatar">AM</div>
-                    <div>
-                        <strong>Alice M.</strong>
-                        <span>Client — Kolwezi</span>
+                <div class="form-group">
+                    <label>Votre note</label>
+                    <div class="star-picker" id="avisStars" role="radiogroup" aria-label="Note sur 5">
+                        <button type="button" data-note="1" aria-label="1 étoile">★</button>
+                        <button type="button" data-note="2" aria-label="2 étoiles">★</button>
+                        <button type="button" data-note="3" aria-label="3 étoiles">★</button>
+                        <button type="button" data-note="4" aria-label="4 étoiles">★</button>
+                        <button type="button" data-note="5" aria-label="5 étoiles">★</button>
                     </div>
+                    <input type="hidden" id="avisNote" value="0">
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="avisCommentaire">Votre commentaire</label>
+                    <textarea id="avisCommentaire" required minlength="8" rows="4"
+                        placeholder="Décrivez votre expérience en quelques phrases..."></textarea>
+                </div>
+                <p class="avis-form-error hidden" id="avisFormError"></p>
+                <button type="submit" class="btn-solid">Publier l’avis</button>
+            </form>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer id="contact">
+    <footer>
         <div class="footer-content">
             <div class="footer-brand">
                 <i class="fas fa-hands-helping"></i>
@@ -240,16 +233,16 @@
             </div>
             <div class="footer-links">
                 <h4>Liens rapides</h4>
+                <a href="recommandes.html">Prestataires recommandés</a>
                 <a href="client.html">Espace Client</a>
                 <a href="prestataire.html">Espace Prestataire</a>
-                <a href="#">Conditions d'utilisation</a>
-                <a href="#">Politique de confidentialité</a>
+                <a href="contact.html">Contact</a>
             </div>
             <div class="footer-contact">
                 <h4>Contact</h4>
-                <p><i class="fas fa-envelope"></i> contact@easyservices.cd</p>
+                <p><i class="fas fa-envelope"></i> <a href="mailto:contact@easyservices.cd">contact@easyservices.cd</a></p>
                 <p><i class="fas fa-phone"></i> +243 999 999 999</p>
-                <p><i class="fas fa-map-marker-alt"></i> Lushi, RDC</p>
+                <p><i class="fas fa-map-marker-alt"></i> Lushi, Lubumbashi, Kolwezi</p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -341,7 +334,39 @@
         </div>
     </div>
 
+    <button type="button" class="assistant-fab" id="assistantFab" aria-expanded="false"
+        aria-controls="assistantWidget" onclick="toggleAssistant(true)">
+        <i class="fas fa-comment-dots"></i>
+        <span>Assistant</span>
+    </button>
+    <div class="assistant-widget" id="assistantWidget" aria-hidden="true">
+        <div class="assistant-widget-head">
+            <div>
+                <strong>Easy Assistant</strong>
+                <span>Décrivez votre besoin, on vous oriente</span>
+            </div>
+            <button type="button" class="assistant-widget-close" aria-label="Fermer"
+                onclick="toggleAssistant(false)"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="assistant-thread" id="assistantThread">
+            <div class="chat-bubble chat-bot">
+                Bonjour ! Dites-moi ce qui ne va pas (fuite, courant, voiture, cheveux…) je vous propose le bon métier.
+            </div>
+            <div class="chat-chips">
+                <button type="button" onclick="fillAssistant('Ma douche fuit depuis hier')">Douche qui fuit</button>
+                <button type="button" onclick="fillAssistant('Mon ordinateur ne s\'allume plus')">PC éteint</button>
+                <button type="button" onclick="fillAssistant('J\'ai besoin d\'une nouvelle coupe de cheveux')">Coupe de cheveux</button>
+                <button type="button" onclick="fillAssistant('Ma voiture fait un bruit bizarre au démarrage')">Bruit au démarrage</button>
+            </div>
+        </div>
+        <form class="assistant-composer" onsubmit="analyzeProblem(event)">
+            <textarea id="assistantInput" rows="1" placeholder="Écrivez votre besoin…"></textarea>
+            <button type="submit" class="assistant-send" aria-label="Envoyer"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+
     <script src="script.js"></script>
+    <script type="module" src="motion-landing.js"></script>
 </body>
 
 </html>

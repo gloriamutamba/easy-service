@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prestataires recommandés — Easy Services</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="inner-page">
+    <nav class="navbar">
+        <a class="nav-brand" href="index.html">
+            <i class="fas fa-hands-helping"></i>
+            <span>Easy Services</span>
+        </a>
+        <button class="nav-toggle" aria-label="Ouvrir le menu" onclick="document.body.classList.toggle('nav-open')"><i
+                class="fas fa-bars"></i></button>
+        <div class="nav-panel">
+            <div class="nav-links">
+                <a href="index.html">Accueil</a>
+                <a href="recommandes.html" class="active">Recommandés</a>
+                <a href="index.html#categories">Catégories</a>
+                <a href="index.html#comment-ca-marche">Comment ça marche</a>
+                <a href="index.html#avis">Avis</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="nav-auth" id="navAuth">
+                <button class="btn-login" onclick="document.body.classList.remove('nav-open');ensureAuthModals();showModal('loginModal')">Connexion</button>
+                <button class="btn-register" onclick="document.body.classList.remove('nav-open');ensureAuthModals();showModal('registerModal')">Inscription</button>
+            </div>
+            <div class="nav-user hidden" id="navUser">
+                <span id="userNameDisplay"></span>
+                <button id="navAdminBtn" class="btn-admin hidden"
+                    onclick="window.location.href='admin.html'">Administration</button>
+                <button class="btn-logout" onclick="logout()">Déconnexion</button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-hero">
+        <nav class="breadcrumb" aria-label="Fil d’Ariane">
+            <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
+            <span class="breadcrumb-sep" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+            <span class="breadcrumb-current"><i class="fas fa-map-marker-alt"></i> Recommandés</span>
+        </nav>
+        <p class="section-eyebrow">Réseau</p>
+        <h1>Prestataires recommandés</h1>
+        <p>Classés selon la note, les avis et la photo de profil. Filtrez, puis ouvrez un profil ou parcourez tout le réseau.</p>
+    </header>
+
+    <section class="page-section">
+        <div class="rec-toolbar">
+            <div class="rec-filters">
+                <select id="recFilterMetier" onchange="filterRecommandes()">
+                    <option value="">Tous les métiers</option>
+                    <option value="Plombier">Plombier</option>
+                    <option value="Électricien">Électricien</option>
+                    <option value="Mécanicien">Mécanicien</option>
+                    <option value="Menuisier">Menuisier</option>
+                    <option value="Informaticien">Informaticien</option>
+                    <option value="Coiffeur">Coiffeur</option>
+                    <option value="Couturier">Couturier</option>
+                    <option value="Serrurier">Serrurier</option>
+                    <option value="Peintre">Peintre</option>
+                </select>
+                <input type="text" id="recFilterVille" placeholder="Ville ou quartier" onkeyup="filterRecommandes()">
+            </div>
+            <a href="client.html" class="btn-solid">Parcourir tous les prestataires</a>
+        </div>
+        <div class="rec-grid" id="topPrestatairesGrid"></div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-hands-helping"></i>
+                <span>Easy Services</span>
+                <p>La plateforme de mise en relation entre clients et prestataires qualifiés.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Liens rapides</h4>
+                <a href="recommandes.html">Prestataires recommandés</a>
+                <a href="client.html">Espace Client</a>
+                <a href="prestataire.html">Espace Prestataire</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <p><i class="fas fa-envelope"></i> <a href="mailto:contact@easyservices.cd">contact@easyservices.cd</a></p>
+                <p><i class="fas fa-phone"></i> +243 999 999 999</p>
+                <p><i class="fas fa-map-marker-alt"></i> Lushi, Lubumbashi, Kolwezi</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Easy Services. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <button type="button" class="assistant-fab" id="assistantFab" aria-expanded="false"
+        aria-controls="assistantWidget" onclick="toggleAssistant(true)">
+        <i class="fas fa-comment-dots"></i>
+        <span>Assistant</span>
+    </button>
+    <div class="assistant-widget" id="assistantWidget" aria-hidden="true">
+        <div class="assistant-widget-head">
+            <div>
+                <strong>Easy Assistant</strong>
+                <span>Décrivez votre besoin, on vous oriente</span>
+            </div>
+            <button type="button" class="assistant-widget-close" aria-label="Fermer"
+                onclick="toggleAssistant(false)"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="assistant-thread" id="assistantThread">
+            <div class="chat-bubble chat-bot">Bonjour ! Dites-moi ce dont vous avez besoin, je vous oriente.</div>
+        </div>
+        <form class="assistant-composer" onsubmit="analyzeProblem(event)">
+            <textarea id="assistantInput" rows="1" placeholder="Écrivez votre besoin…"></textarea>
+            <button type="submit" class="assistant-send" aria-label="Envoyer"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+    <script type="module" src="motion-landing.js"></script>
+</body>
+
+</html>

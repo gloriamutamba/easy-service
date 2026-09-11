@@ -21,14 +21,14 @@
             <a href="#" class="active" onclick="showClientSection('recherche', this)">
                 <i class="fas fa-search"></i> Rechercher
             </a>
-            <a href="#" onclick="showClientSection('demandes', this)">
+            <a href="#" data-auth="client" onclick="showClientSection('demandes', this)">
                 <i class="fas fa-clipboard-list"></i> Mes demandes
             </a>
-            <a href="#" onclick="showClientSection('messages', this)">
+            <a href="#" data-auth="client" onclick="showClientSection('messages', this)">
                 <i class="fas fa-comments"></i> Messages
                 <span class="badge hidden" id="msgBadge">0</span>
             </a>
-            <a href="#" onclick="showClientSection('profil', this)">
+            <a href="#" data-auth="client" onclick="showClientSection('profil', this)">
                 <i class="fas fa-user"></i> Mon profil
             </a>
         </nav>
@@ -52,6 +52,11 @@
                 <div class="avatar" id="clientAvatar">C</div>
             </div>
         </header>
+        <nav class="breadcrumb breadcrumb-dash" aria-label="Fil d’Ariane">
+            <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
+            <span class="breadcrumb-sep" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+            <span class="breadcrumb-current"><i class="fas fa-search"></i> Espace client</span>
+        </nav>
 
         <!-- Panel Notifications -->
         <div class="notif-panel hidden" id="notifPanel">
