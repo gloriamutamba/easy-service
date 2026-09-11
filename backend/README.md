@@ -1,43 +1,26 @@
-Backend Flask + SQLite for Easy Services
+# Backend Easy Services
 
-Layout
-- `app.py` — routes API
-- `extensions.py` — instances `db` et `jwt`
-- `models/` — un fichier par modèle (`user.py`, `client.py`, `prestataire.py`, …)
+API Flask + SQLite + JWT. Le frontend est servi automatiquement depuis `../frontend`.
 
-Prerequisites
-- Python 3.9+ (3.10 recommended)
+**Guide complet (install, lancement, comptes démo) :** voir le [README à la racine](../README.md).
 
-Install
+## Installer et lancer
 
-```bash
-cd backend
+```powershell
 python -m venv .venv
-.\.venv\Scripts\activate    # Windows PowerShell
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
-
-Run
-
-```bash
-# from backend folder
-# development server
 python app.py
-# or
-set FLASK_APP=app.py
-flask run
 ```
 
-API Endpoints (examples)
-- POST /api/register  { email, password, type, name }
-- POST /api/login     { email, password }
-- GET  /api/me        (requires Authorization: Bearer <token>)
-- GET  /api/prestataires
-- GET  /api/demandes
-- POST /api/demandes  { client_id, prestataire_id, description }
-- POST /api/devis     (requires JWT for prestataire)
-- GET/POST /api/messages
+Ouvre http://127.0.0.1:5000/
 
-Notes
-- JWT secret is read from `EASYSERV_JWT_SECRET` env var or default dev key in `app.py` (change for production).
-- The backend seeds demo data on first run (users, prestataires, client, demande, devis, messages, categories).
+Aucun build frontend. En production, définir `EASYSERV_JWT_SECRET` (voir README racine).
+
+## Fichiers
+
+- `app.py` — routes API + `python app.py`
+- `extensions.py` — `db`, `jwt`
+- `models/` — un fichier par modèle
+- `requirements.txt` — dépendances Python
+- `easyservices.db` — créée au premier lancement
