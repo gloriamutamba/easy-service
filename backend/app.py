@@ -510,8 +510,66 @@ def admin_users():
     if not is_admin_user(uid):
         return jsonify({'error':'forbidden'}), 403
     users = User.query.all()
-    out = [{'id':u.id,'email':u.email,'type':u.type,'name':u.name,'created_at':u.created_at.isoformat()} for u in users]
+    out = []
+    for u in users:
+        row = {'id': u.id, 'email': u.email, 'type': u.type, 'name': u.name, 'created_at': u.created_at.isoformat() if u.created_at else ''}
+        if u.type == 'client':
+            c = Client.query.filter_by(user_id=u.id).first()
+            if c:
+                row['phone'] = c.phone or ''
+                row['ville'] = c.ville or ''
+        out.append(row)
     return jsonify(out)
+
+
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def admin_delete_user(user_id):
+    uid = current_user_id()
+    if not is_admin_user(uid):
+        return jsonify({'error': 'forbidden'}), 403
+    target = User.query.get(user_id)
+    if not target:
+        return jsonify({'error': 'Utilisateur introuvable.'}), 404
+    if target.id == uid:
+        return jsonify({'error': 'Vous ne pouvez pas supprimer votre propre compte.'}), 400
+    if target.type == 'admin' and User.query.filter_by(type='admin').count() <= 1:
+        return jsonify({'error': 'Impossible de supprimer le dernier administrateur.'}), 400
+
+    client = Client.query.filter_by(user_id=target.id).first()
+    presta = Prestataire.query.filter_by(user_id=target.id).first()
+    related_ids = {target.id}
+    if client:
+        related_ids.add(client.id)
+    if presta:
+        related_ids.add(presta.id)
+
+    if client:
+        Devis.query.filter_by(client_id=client.id).delete(synchronize_session=False)
+        Demande.query.filter_by(client_id=client.id).delete(synchronize_session=False)
+    if presta:
+        Devis.query.filter_by(prestataire_id=presta.id).delete(synchronize_session=False)
+        Demande.query.filter_by(prestataire_id=presta.id).delete(synchronize_session=False)
+        photos = Photo.query.filter_by(prestataire_id=presta.id).all()
+        for ph in photos:
+            try:
+                path = os.path.join(UPLOAD_DIR, ph.filename)
+                if os.path.isfile(path):
+                    os.remove(path)
+            except Exception:
+                pass
+            db.session.delete(ph)
+
+    Message.query.filter(or_(Message.sender_id.in_(related_ids), Message.receiver_id.in_(related_ids))).delete(synchronize_session=False)
+    Avis.query.filter_by(user_id=target.id).delete(synchronize_session=False)
+
+    if client:
+        db.session.delete(client)
+    if presta:
+        db.session.delete(presta)
+    db.session.delete(target)
+    db.session.commit()
+    return jsonify({'ok': True})
 
 
 @app.route('/api/admin/prestataires')
@@ -524,7 +582,7 @@ def admin_prestataires():
     out = []
     for p in ps:
         u = User.query.get(p.user_id)
-        out.append({'id':p.id,'nom':p.nom,'metier':p.metier,'ville':p.ville,'note':p.note,'active':p.active,'user_email': u.email if u else ''})
+        out.append({'id':p.id,'user_id':p.user_id,'nom':p.nom,'metier':p.metier,'ville':p.ville,'note':p.note,'active':p.active,'user_email': u.email if u else ''})
     return jsonify(out)
 
 
