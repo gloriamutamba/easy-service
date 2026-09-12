@@ -1638,7 +1638,7 @@ async function renderAdminClients() {
     try {
         const res = await apiFetch('/admin/users', { method: 'GET' });
         if (res && res.status === 200 && Array.isArray(res.body)) {
-            tbody.innerHTML = res.body.filter(u => u.type === 'client').map(c => `<tr><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.email || '')}</td><td>—</td><td>—</td><td>${escapeHtml(c.created_at || '')}</td><td><button onclick="deleteUser('${c.id}','client')">Suppr</button></td></tr>`).join('');
+            tbody.innerHTML = res.body.filter(u => u.type === 'client').map(c => `<tr><td>${escapeHtml(c.name || '')}</td><td>${escapeHtml(c.email || '')}</td><td>${escapeHtml(c.phone || '—')}</td><td>${escapeHtml(c.ville || '—')}</td><td>${escapeHtml(formatDate(c.created_at) || '')}</td><td><button type="button" class="btn-small-outline" onclick="deleteUser('${c.id}','client')">Supprimer</button></td></tr>`).join('');
             return;
         }
     } catch (e) { console.error(e); }
@@ -1650,7 +1650,7 @@ async function renderAdminPrestataires() {
     try {
         const res = await apiFetch('/admin/prestataires', { method: 'GET' });
         if (res && res.status === 200 && Array.isArray(res.body)) {
-            tbody.innerHTML = res.body.map(p => `<tr><td>${escapeHtml(p.nom || '')}</td><td>${escapeHtml(p.metier || '')}</td><td>${escapeHtml(p.ville || '')}</td><td>${p.note || 0}/5</td><td><button onclick="togglePrestaStatus('${p.id}')">${p.active !== false ? 'Désactiver' : 'Activer'}</button></td></tr>`).join('');
+            tbody.innerHTML = res.body.map(p => `<tr><td>${escapeHtml(p.nom || '')}</td><td>${escapeHtml(p.metier || '')}</td><td>${escapeHtml(p.ville || '')}</td><td>${p.note || 0}/5</td><td>—</td><td>${p.active !== false ? 'Actif' : 'Inactif'}</td><td><button type="button" class="btn-small-outline" onclick="deleteUser('${p.user_id || p.id}','prestataire')">Supprimer</button></td></tr>`).join('');
             return;
         }
     } catch (e) { console.error(e); }
@@ -1718,7 +1718,23 @@ async function renderAdminAvis() {
     container.innerHTML = avis.map(a => `<div class="avis-item"><strong>${escapeHtml(String(a.note || ''))}/5</strong> — ${escapeHtml(a.commentaire || '')}</div>`).join('');
 }
 function togglePrestaStatus(id) { const prestas = DB.get('prestataires') || []; const p = prestas.find(x => x.id === id); if (p) { p.active = p.active === false ? true : false; DB.set('prestataires', prestas); renderAdminPrestataires(); } }
-function deleteUser(userId, type) { if (!confirm('Supprimer cet utilisateur ?')) return; let users = DB.get('users') || []; users = users.filter(u => u.id !== userId); DB.set('users', users); if (type === 'client') { let clients = DB.get('clients') || []; clients = clients.filter(c => c.userId !== userId); DB.set('clients', clients); renderAdminClients(); } else { let prestas = DB.get('prestataires') || []; prestas = prestas.filter(p => p.userId !== userId); DB.set('prestataires', prestas); renderAdminPrestataires(); } renderAdminDashboard(); }
+async function deleteUser(userId, type) {
+    if (!confirm('Supprimer cet utilisateur ? Les demandes, messages et photos liés seront aussi retirés.')) return;
+    try {
+        const res = await apiFetch('/admin/users/' + encodeURIComponent(userId), { method: 'DELETE' });
+        if (res && res.status === 200 && res.body && res.body.ok) {
+            renderAdminClients();
+            renderAdminPrestataires();
+            renderAdminDemandes();
+            renderAdminDashboard();
+            return;
+        }
+        alert((res && res.body && res.body.error) || 'Suppression impossible.');
+    } catch (e) {
+        console.error(e);
+        alert('Erreur réseau.');
+    }
+}
 
 // Routing: call appropriate init based on pathname
 document.addEventListener('DOMContentLoaded', () => {
